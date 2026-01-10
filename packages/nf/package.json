@@ -7,7 +7,28 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "echo \"Tests coming soon\""
+    "test": "echo \"Tests coming soon\"",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "metaverse",
+    "normalization",
+    "events",
+    "deterministic"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/metaverse-kit.git",
+    "directory": "packages/nf"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/metaverse-kit/issues"
+  },
+  "homepage": "https://github.com/your-org/metaverse-kit#readme",
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
     "@metaverse-kit/protocol": "^0.1.0",

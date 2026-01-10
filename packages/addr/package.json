@@ -7,7 +7,29 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "echo \"Tests coming soon\""
+    "test": "echo \"Tests coming soon\"",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "metaverse",
+    "content-addressing",
+    "hash",
+    "sha256",
+    "canonical-json"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/metaverse-kit.git",
+    "directory": "packages/addr"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/metaverse-kit/issues"
+  },
+  "homepage": "https://github.com/your-org/metaverse-kit#readme",
+  "publishConfig": {
+    "access": "public"
   },
   "devDependencies": {
     "typescript": "^5.3.3",
