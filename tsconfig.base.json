@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "lib": ["ES2022"],
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "composite": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "@metaverse-kit/protocol": ["./packages/protocol/src"],
+      "@metaverse-kit/protocol/*": ["./packages/protocol/src/*"],
+      "@metaverse-kit/addr": ["./packages/addr/src"],
+      "@metaverse-kit/nf": ["./packages/nf/src"],
+      "@metaverse-kit/pf16": ["./packages/pf16/src"],
+      "@metaverse-kit/shadow-canvas": ["./packages/shadow-canvas/src"],
+      "@metaverse-kit/tilestore": ["./packages/tilestore/src"],
+      "@metaverse-kit/scope": ["./packages/scope/src"],
+      "@metaverse-kit/projector-2d": ["./packages/projector-2d/src"],
+      "@metaverse-kit/projector-3d": ["./packages/projector-3d/src"]
+    }
+  },
+  "exclude": ["node_modules", "dist"]
+}

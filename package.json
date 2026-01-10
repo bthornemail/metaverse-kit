@@ -1,0 +1,27 @@
+{
+  "name": "metaverse-kit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Distributed, local-first collaborative infinite canvas metaverse built on append-only event traces",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "tools/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "dev:server": "cd apps/server && node --watch src/server.ts",
+    "dev:client": "cd apps/client && npm run dev",
+    "clean": "rm -rf node_modules packages/*/node_modules packages/*/dist apps/*/node_modules apps/*/dist tools/*/node_modules tools/*/dist",
+    "typecheck": "tsc --build"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "vite": "^5.0.0",
+    "@types/node": "^20.10.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

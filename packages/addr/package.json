@@ -1,0 +1,16 @@
+{
+  "name": "@metaverse-kit/addr",
+  "version": "0.1.0",
+  "description": "Content addressing (ADDR.v1) - immutable content IDs (RID) and structural pointers (SID)",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "echo \"Tests coming soon\""
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.0"
+  }
+}

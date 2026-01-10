@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.base.json",
+  "files": [],
+  "references": [
+    { "path": "./packages/protocol" },
+    { "path": "./packages/addr" },
+    { "path": "./packages/nf" },
+    { "path": "./packages/shadow-canvas" },
+    { "path": "./packages/tilestore" },
+    { "path": "./apps/server" },
+    { "path": "./apps/client" }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "@metaverse-kit/protocol",
+  "version": "0.1.0",
+  "description": "Event protocol types, validators, and codecs for Metaverse Kit",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./types": "./dist/types.js",
+    "./validate": "./dist/validate.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "echo \"Tests coming soon\""
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
