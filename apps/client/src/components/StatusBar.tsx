@@ -59,6 +59,9 @@ export default function StatusBar({ tileState, viewport }: StatusBarProps) {
           • 2D/3D toggle: view mode
         </div>
         <div style={{ color: '#888', fontSize: '10px' }}>
+          • 1D/voxel views: same data, different projection
+        </div>
+        <div style={{ color: '#888', fontSize: '10px' }}>
           • 3D: drag to orbit, scroll to zoom
         </div>
       </div>

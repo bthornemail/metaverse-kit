@@ -1,0 +1,219 @@
+{
+  "main": {
+    "id": "a41f0676d70bfaac",
+    "type": "split",
+    "children": [
+      {
+        "id": "39375bd178921bdd",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "fcb5276f41679dfb",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "dev-docs/1005 - Typed Coordinate System for Meaning and Projection.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "1005 - Typed Coordinate System for Meaning and Projection"
+            }
+          },
+          {
+            "id": "1fe9eb1e3ae168a7",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Untitled.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Untitled"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "6fdc0d4f5000a90b",
+    "type": "split",
+    "children": [
+      {
+        "id": "1f27c7ea5b35bdc0",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "c961336ffda26a9f",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "4267c0dba07b3ca7",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "058198a1b9f00351",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "9f98134263453893",
+    "type": "split",
+    "children": [
+      {
+        "id": "846a945885a5c598",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "72749b13fdcb7efd",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Untitled.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for Untitled"
+            }
+          },
+          {
+            "id": "5bed74339386c019",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Untitled.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from Untitled"
+            }
+          },
+          {
+            "id": "ca7ff97f7d1b21ca",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "b32885a55e8b4732",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "6ae3cb7a7b7b4f60",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Untitled.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of Untitled"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "1fe9eb1e3ae168a7",
+  "lastOpenFiles": [
+    "apps/client/src/components/TimelineBar.tsx",
+    "apps/server/world/discovery.json.tmp",
+    "dev-docs/NARRATIVE_ENGINE/1002 - Narrative Projevtor - Update.md",
+    "dev-docs/NARRATIVE_ENGINE/1003 - Story Build Starter.md",
+    "Untitled.md",
+    "dev-docs/1005 - Typed Coordinate System for Meaning and Projection.md",
+    "apps/client/src/semantic/roles.ts",
+    "apps/client/src/semantic",
+    "apps/client/src/components/NarrativeList.tsx",
+    "apps/client/src/components/NarrativeCrawl.tsx",
+    "apps/client/src/narrative/engine.ts",
+    "apps/client/src/narrative/series.ts",
+    "apps/client/src/narrative",
+    "apps/client/src/rendering/narrative.ts",
+    "apps/client/src/rendering"
+  ]
+}

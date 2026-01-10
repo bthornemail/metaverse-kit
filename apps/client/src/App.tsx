@@ -1,10 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { TileState } from '@metaverse-kit/shadow-canvas';
 import { buildState } from '@metaverse-kit/shadow-canvas';
 import type { WorldEvent, SpaceId, TileId, PresenceUpdate, Snapshot } from '@metaverse-kit/protocol';
 import Canvas from './components/Canvas';
 import Canvas3D from './components/Canvas3D';
 import Overlay2D from './components/Overlay2D';
+import VoxelCanvas from './components/VoxelCanvas';
+import EventList from './components/EventList';
+import NarrativeCrawl from './components/NarrativeCrawl';
+import { NARRATIVE_BEATS } from './narrative/series';
+import { narrativeFrame } from './narrative/engine';
+import NarrativeList from './components/NarrativeList';
+import { DEFAULT_ASSET_PACKS, type SemanticRole, getAssetForRole, type AssetPack } from './semantic/roles';
 import Toolbar from './components/Toolbar';
 import StatusBar from './components/StatusBar';
 
@@ -133,7 +140,12 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTool, setActiveTool] = useState<'select' | 'rectangle'>('select');
-  const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
+  const [viewMode, setViewMode] = useState<'1d' | '2d' | 'voxel' | '3d'>('2d');
+  const [narrativeMode, setNarrativeMode] = useState(false);
+  const [semanticRole, setSemanticRole] = useState<SemanticRole>('law');
+  const [symbolSet, setSymbolSet] = useState(DEFAULT_ASSET_PACKS[0].id);
+  const [assetPacks, setAssetPacks] = useState<AssetPack[]>(DEFAULT_ASSET_PACKS);
+  const [isImportingPack, setIsImportingPack] = useState(false);
   const [allEvents, setAllEvents] = useState<WorldEvent[]>([]);
   const [timelinePct, setTimelinePct] = useState(1);
   const [timelineRange, setTimelineRange] = useState<{ min: number; max: number } | null>(null);
@@ -190,13 +202,20 @@ export default function App() {
     };
   }, [actorId, spaceId]);
 
-  useEffect(() => {
-    if (!timelineRange || allEvents.length === 0) return;
+  const filteredEvents = useMemo(() => {
+    if (!timelineRange || allEvents.length === 0) return [];
     const { min, max } = timelineRange;
     const cutoff = min + (max - min) * timelinePct;
-    const filtered = allEvents.filter((ev) => ev.timestamp <= cutoff);
-    setTileState(buildState(tileId, snapshot, filtered));
-  }, [timelinePct, allEvents, tileId, timelineRange, snapshot]);
+    return allEvents.filter((ev) => ev.timestamp <= cutoff);
+  }, [allEvents, timelineRange, timelinePct]);
+
+  const narrative = useMemo(() => narrativeFrame(NARRATIVE_BEATS, timelinePct), [timelinePct]);
+  const displayState = narrativeMode ? narrative.state : tileState;
+
+  useEffect(() => {
+    if (!timelineRange || allEvents.length === 0) return;
+    setTileState(buildState(tileId, snapshot, filteredEvents));
+  }, [filteredEvents, tileId, timelineRange, snapshot, allEvents.length]);
 
   useEffect(() => {
     if (allEvents.length === 0) return;
@@ -338,6 +357,7 @@ export default function App() {
 
   async function createRectangle(x: number, y: number, width: number, height: number) {
     if (!tileState) return;
+    const assets = getAssetForRole(symbolSet, semanticRole, assetPacks);
 
     // Create a create_node event
     const event: WorldEvent = {
@@ -362,7 +382,7 @@ export default function App() {
       previous_events: [],
       tile: tileId,
       node_id: `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      kind: 'primitive.rectangle',
+      kind: 'semantic.symbol',
       transform: {
         position: [x, y, 0],
         rotation_quat: [0, 0, 0, 1],
@@ -370,8 +390,19 @@ export default function App() {
       },
       properties: {
         color: '#ffffff',
-        label: 'Rectangle',
+        label: semanticRole,
+        semantic_role: semanticRole,
+        narrative: {
+          actions: ['spawn', 'highlight'],
+          intensity: 0.6,
+        },
       },
+      ...(assets.svg
+        ? { geometry: { kind: 'svg', ref: assets.svg, units: 'px' } }
+        : {}),
+      ...(assets.glb
+        ? { geometry: { kind: 'glb', ref: assets.glb, units: 'm' } }
+        : {}),
     };
 
     try {
@@ -477,7 +508,7 @@ export default function App() {
     );
   }
 
-  if (!tileState) {
+  if (!tileState && !narrativeMode) {
     return null;
   }
 
@@ -485,7 +516,7 @@ export default function App() {
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
       {viewMode === '2d' ? (
         <Canvas
-          tileState={tileState}
+          tileState={displayState ?? tileState}
           viewport={viewport}
           setViewport={setViewport}
           activeTool={activeTool}
@@ -493,13 +524,48 @@ export default function App() {
           presence={Object.values(presenceMap)}
           onCursorMove={handleCursorMove}
         />
-      ) : (
-        <Canvas3D tileState={tileState} />
-      )}
-      {viewMode === '2d' ? (
-        <Overlay2D tileState={tileState} viewport={viewport} />
       ) : null}
-      <Toolbar activeTool={activeTool} setActiveTool={setActiveTool} />
+      {viewMode === '2d' ? (
+        <Overlay2D
+          tileState={displayState ?? tileState}
+          viewport={viewport}
+        />
+      ) : null}
+      {viewMode === '3d' ? (
+        <Canvas3D tileState={displayState ?? tileState} />
+      ) : null}
+      {viewMode === 'voxel' ? (
+        <VoxelCanvas tileState={displayState ?? tileState} />
+      ) : null}
+      {viewMode === '1d' ? (
+        narrativeMode ? <NarrativeList beats={NARRATIVE_BEATS} activeId={narrative.beat.id} /> : <EventList events={filteredEvents} />
+      ) : null}
+      {narrativeMode && (narrative.beat.mode === 'prelude' || narrative.beat.mode === 'covenant') ? (
+        <NarrativeCrawl beat={narrative.beat} progress={narrative.progress} />
+      ) : null}
+      <Toolbar
+        activeTool={activeTool}
+        setActiveTool={setActiveTool}
+        semanticRole={semanticRole}
+        setSemanticRole={setSemanticRole}
+        symbolSet={symbolSet}
+        setSymbolSet={setSymbolSet}
+        assetPacks={assetPacks.map((p) => ({ id: p.id, label: p.label }))}
+        onImportPack={() => setIsImportingPack(true)}
+      />
+      {isImportingPack ? (
+        <PackImportModal
+          onClose={() => setIsImportingPack(false)}
+          onImport={(pack) => {
+            setAssetPacks((prev) => {
+              const filtered = prev.filter((p) => p.id !== pack.id);
+              return [...filtered, pack];
+            });
+            setSymbolSet(pack.id);
+            setIsImportingPack(false);
+          }}
+        />
+      ) : null}
       <StatusBar tileState={tileState} viewport={viewport} />
       <div
         style={{
@@ -515,6 +581,34 @@ export default function App() {
         }}
       >
         <button
+          onClick={() => setViewMode('1d')}
+          style={{
+            padding: '8px 12px',
+            background: viewMode === '1d' ? '#44cc88' : '#222',
+            color: viewMode === '1d' ? '#fff' : '#aaa',
+            border: '1px solid ' + (viewMode === '1d' ? '#44cc88' : '#333'),
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '12px',
+          }}
+        >
+          1D View
+        </button>
+        <button
+          onClick={() => setNarrativeMode((prev) => !prev)}
+          style={{
+            padding: '8px 12px',
+            background: narrativeMode ? '#5c6bc0' : '#222',
+            color: narrativeMode ? '#fff' : '#aaa',
+            border: '1px solid ' + (narrativeMode ? '#5c6bc0' : '#333'),
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '12px',
+          }}
+        >
+          Narrative
+        </button>
+        <button
           onClick={() => setViewMode('2d')}
           style={{
             padding: '8px 12px',
@@ -527,6 +621,20 @@ export default function App() {
           }}
         >
           2D View
+        </button>
+        <button
+          onClick={() => setViewMode('voxel')}
+          style={{
+            padding: '8px 12px',
+            background: viewMode === 'voxel' ? '#cc8844' : '#222',
+            color: viewMode === 'voxel' ? '#fff' : '#aaa',
+            border: '1px solid ' + (viewMode === 'voxel' ? '#cc8844' : '#333'),
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '12px',
+          }}
+        >
+          Voxel
         </button>
         <button
           onClick={() => setViewMode('3d')}
@@ -567,15 +675,94 @@ export default function App() {
           min={0}
           max={100}
           value={Math.round(timelinePct * 100)}
-          disabled={!timelineRange || allEvents.length === 0}
+          disabled={!narrativeMode && (!timelineRange || allEvents.length === 0)}
           onChange={(e) => setTimelinePct(Number(e.target.value) / 100)}
         />
         <div style={{ color: '#666', fontSize: '10px', fontFamily: 'monospace' }}>
-          {timelineRange
+          {narrativeMode
+            ? `${narrative.index + 1}/${NARRATIVE_BEATS.length} · ${narrative.beat.title}`
+            : timelineRange
             ? new Date(
                 timelineRange.min + (timelineRange.max - timelineRange.min) * timelinePct
               ).toLocaleTimeString()
             : 'No events'}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PackImportModal({
+  onClose,
+  onImport,
+}: {
+  onClose: () => void;
+  onImport: (pack: AssetPack) => void;
+}) {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        inset: 0,
+        background: 'rgba(0, 0, 0, 0.7)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10,
+      }}
+    >
+      <div
+        style={{
+          width: '420px',
+          background: '#111',
+          border: '1px solid #333',
+          borderRadius: '10px',
+          padding: '16px',
+          color: '#ddd',
+          fontFamily: 'monospace',
+          fontSize: '12px',
+        }}
+      >
+        <div style={{ fontSize: '14px', marginBottom: '10px' }}>Import Asset Pack</div>
+        <input
+          type="file"
+          accept="application/json"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+              try {
+                const parsed = JSON.parse(String(reader.result));
+                if (!parsed?.id || !parsed?.roleToAsset) {
+                  alert('Invalid pack: missing id or roleToAsset');
+                  return;
+                }
+                onImport(parsed as AssetPack);
+              } catch {
+                alert('Invalid JSON');
+              }
+            };
+            reader.readAsText(file);
+          }}
+        />
+        <div style={{ marginTop: '12px', color: '#888' }}>
+          Expecting JSON with fields: id, label, roleToAsset.
+        </div>
+        <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+          <button
+            onClick={onClose}
+            style={{
+              padding: '8px 12px',
+              background: '#222',
+              color: '#ccc',
+              border: '1px solid #333',
+              borderRadius: '6px',
+              cursor: 'pointer',
+            }}
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

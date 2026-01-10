@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type MutableRefObject } from 'react';
 import type { TileState } from '@metaverse-kit/shadow-canvas';
 import { getLiveNodes } from '@metaverse-kit/shadow-canvas';
 import type { PresenceUpdate } from '@metaverse-kit/protocol';
+import { computeRenderState, hasIsolate } from '../rendering/narrative';
 
 interface CanvasProps {
   tileState: TileState;
@@ -58,18 +59,29 @@ export default function Canvas({
 
     // Render nodes
     const liveNodes = getLiveNodes(tileState);
+    const isolateActive = hasIsolate(liveNodes);
     for (const node of liveNodes) {
+      const renderState = computeRenderState(node, isolateActive);
       const [x, y] = node.transform.position;
       const [w, h] = node.transform.scale;
+      const worldX = x + renderState.offset[0];
+      const worldY = y + renderState.offset[1];
 
-      const [sx, sy] = worldToScreen(x, y, viewport);
-      const sw = w * viewport.scale;
-      const sh = h * viewport.scale;
+      const [sx, sy] = worldToScreen(worldX, worldY, viewport);
+      const sw = w * viewport.scale * renderState.scale;
+      const sh = h * viewport.scale * renderState.scale;
 
       // Draw rectangle
-      ctx.strokeStyle = (node.properties.color as string) || '#ffffff';
+      ctx.globalAlpha = renderState.opacity;
+      ctx.strokeStyle = relationStroke(renderState.relation) || (node.properties.color as string) || '#ffffff';
       ctx.lineWidth = 2;
       ctx.strokeRect(sx, sy, sw, sh);
+
+      if (renderState.highlight) {
+        ctx.strokeStyle = '#ffd166';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(sx - 2, sy - 2, sw + 4, sh + 4);
+      }
 
       // Draw SVG projection if available
       const svgRef = node.geometry?.kind === 'svg' ? node.geometry.ref : node.media?.kind === 'svg' ? node.media.ref : null;
@@ -135,6 +147,7 @@ export default function Canvas({
         ctx.font = '12px monospace';
         ctx.fillText(node.properties.label as string, sx + 4, sy - 4);
       }
+      ctx.globalAlpha = 1;
     }
 
     // Draw preview rectangle while drawing
@@ -350,10 +363,30 @@ export default function Canvas({
 }
 
 function resolveRef(ref: string): string {
+  if (ref.startsWith('symbol:')) {
+    return symbolSvgData(ref);
+  }
   if (ref.startsWith('sha256:') || ref.startsWith('blake3:')) {
     return `/object/${encodeURIComponent(ref)}`;
   }
   return ref;
+}
+
+function symbolSvgData(ref: string): string {
+  const name = ref.replace('symbol:', '');
+  const label = name.toUpperCase();
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128">
+    <rect width="128" height="128" fill="none" stroke="#88a0ff" stroke-width="4"/>
+    <text x="64" y="70" text-anchor="middle" font-size="18" fill="#88a0ff" font-family="monospace">${label}</text>
+  </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function relationStroke(relation: 'align' | 'collide' | 'separate' | null): string | null {
+  if (!relation) return null;
+  if (relation === 'align') return '#56ccf2';
+  if (relation === 'collide') return '#ff5c5c';
+  return '#9bff5c';
 }
 
 function drawWaveform(

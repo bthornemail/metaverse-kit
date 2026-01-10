@@ -2,6 +2,7 @@ import { Canvas, useLoader } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import type { TileState, NodeState } from '@metaverse-kit/shadow-canvas';
 import { getLiveNodes } from '@metaverse-kit/shadow-canvas';
+import { computeRenderState, hasIsolate } from '../rendering/narrative';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -14,6 +15,7 @@ interface Canvas3DProps {
 
 export default function Canvas3D({ tileState }: Canvas3DProps) {
   const nodes = getLiveNodes(tileState);
+  const isolateActive = hasIsolate(nodes);
 
   return (
     <div style={{ width: '100%', height: '100%', background: '#0a0a0a' }}>
@@ -23,7 +25,7 @@ export default function Canvas3D({ tileState }: Canvas3DProps) {
         <directionalLight position={[50, 80, 100]} intensity={0.7} />
         <Suspense fallback={null}>
           {nodes.map((node) => (
-            <NodeMesh key={node.node_id} node={node} />
+            <NodeMesh key={node.node_id} node={node} isolateActive={isolateActive} />
           ))}
         </Suspense>
       </Canvas>
@@ -31,14 +33,25 @@ export default function Canvas3D({ tileState }: Canvas3DProps) {
   );
 }
 
-function NodeMesh({ node }: { node: NodeState }) {
+function NodeMesh({ node, isolateActive }: { node: NodeState; isolateActive: boolean }) {
+  const renderState = computeRenderState(node, isolateActive);
   const [x, y, z] = node.transform.position;
   const [sx, sy, sz] = node.transform.scale;
   const color = (node.properties.color as string) || '#ffffff';
+  const pos: [number, number, number] = [
+    x + renderState.offset[0],
+    y + renderState.offset[1],
+    z + renderState.offset[2],
+  ];
+  const scale: [number, number, number] = [
+    sx * renderState.scale,
+    sy * renderState.scale,
+    sz * renderState.scale,
+  ];
 
   if (node.geometry?.kind === 'glb') {
     return (
-      <GlbMesh url={resolveRef(node.geometry.ref)} position={[x, y, z]} scale={[sx, sy, sz]} />
+      <GlbMesh url={resolveRef(node.geometry.ref)} position={pos} scale={scale} />
     );
   }
 
@@ -48,8 +61,8 @@ function NodeMesh({ node }: { node: NodeState }) {
       <ObjMesh
         objUrl={resolveRef(node.geometry.ref)}
         mtlUrl={materialRef ? resolveRef(materialRef) : null}
-        position={[x, y, z]}
-        scale={[sx, sy, sz]}
+        position={pos}
+        scale={scale}
       />
     );
   }
@@ -58,15 +71,15 @@ function NodeMesh({ node }: { node: NodeState }) {
     return (
       <VideoPlane
         url={resolveRef(node.media.ref)}
-        position={[x, y, z]}
-        scale={[sx, sy, 1]}
+        position={pos}
+        scale={[scale[0], scale[1], 1]}
       />
     );
   }
 
   if (node.media?.kind === 'wav') {
     return (
-      <mesh position={[x, y, z]} scale={[sx, sy, sz]}>
+      <mesh position={pos} scale={scale}>
         <sphereGeometry args={[0.5, 16, 16]} />
         <meshStandardMaterial color={'#66ccff'} />
       </mesh>
@@ -74,9 +87,9 @@ function NodeMesh({ node }: { node: NodeState }) {
   }
 
   return (
-    <mesh position={[x, y, z]} scale={[sx, sy, sz]}>
+    <mesh position={pos} scale={scale}>
       <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color={color} />
+      <meshStandardMaterial color={color} transparent opacity={renderState.opacity} />
     </mesh>
   );
 }
@@ -137,12 +150,33 @@ function VideoPlane({
 }
 
 function resolveRef(ref: string): string {
+  if (ref.startsWith('symbol:')) {
+    return symbolToGltf(ref);
+  }
   const sample = resolveGltfSample(ref);
   if (sample) return sample;
   if (ref.startsWith('sha256:') || ref.startsWith('blake3:')) {
     return `/object/${encodeURIComponent(ref)}`;
   }
   return ref;
+}
+
+function symbolToGltf(ref: string): string {
+  const name = ref.replace('symbol:', '');
+  const mapping: Record<string, string> = {
+    law: 'gltf-sample:BoxAnimated@glb',
+    wisdom: 'gltf-sample:Avocado@glb',
+    identity: 'gltf-sample:DamagedHelmet@glb',
+    witness: 'gltf-sample:Fox@glb',
+    boundary: 'gltf-sample:Box@glb',
+    gate: 'gltf-sample:BoxTextured@glb',
+    tower: 'gltf-sample:Box@glb',
+    flood: 'gltf-sample:WaterBottle@glb',
+    ark: 'gltf-sample:Box@glb',
+    conversation: 'gltf-sample:OrientationTest@glb',
+    alignment: 'gltf-sample:BoxAnimated@glb',
+  };
+  return resolveGltfSample(mapping[name] ?? 'gltf-sample:Box@glb') ?? 'gltf-sample:Box@glb';
 }
 
 function resolveGltfSample(ref: string): string | null {
