@@ -49,6 +49,18 @@ export default function StatusBar({ tileState, viewport }: StatusBarProps) {
         <div style={{ color: '#888', fontSize: '10px' }}>
           • Drag (rectangle): draw
         </div>
+        <div style={{ color: '#888', fontSize: '10px' }}>
+          • Move mouse: presence cursor
+        </div>
+        <div style={{ color: '#888', fontSize: '10px' }}>
+          • Timeline: scrub history
+        </div>
+        <div style={{ color: '#888', fontSize: '10px' }}>
+          • 2D/3D toggle: view mode
+        </div>
+        <div style={{ color: '#888', fontSize: '10px' }}>
+          • 3D: drag to orbit, scroll to zoom
+        </div>
       </div>
     </div>
   );

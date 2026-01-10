@@ -1,6 +1,6 @@
 {
   "name": "@metaverse-kit/addr",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Content addressing (ADDR.v1) - immutable content IDs (RID) and structural pointers (SID)",
   "type": "module",
   "main": "dist/index.js",

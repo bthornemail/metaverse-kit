@@ -1,0 +1,8 @@
+{
+  "name": "@metaverse-kit/mv-replay",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mv-replay": "./index.js"
+  }
+}

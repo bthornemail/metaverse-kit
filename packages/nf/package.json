@@ -1,6 +1,6 @@
 {
   "name": "@metaverse-kit/nf",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "NF.v1 - Event normalization and equivalence checking for Metaverse Kit",
   "type": "module",
   "main": "dist/index.js",
@@ -31,8 +31,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@metaverse-kit/protocol": "^0.1.0",
-    "@metaverse-kit/addr": "^0.1.0"
+    "@metaverse-kit/protocol": "^0.0.1",
+    "@metaverse-kit/addr": "^0.0.1"
   },
   "devDependencies": {
     "typescript": "^5.3.3"

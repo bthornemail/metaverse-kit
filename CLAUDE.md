@@ -177,6 +177,17 @@ Determines equivalence of constraint blocks under allowed transformations. Ensur
 
 Typed 16-slot identity composition for managing complex identity relationships in federated scenarios.
 
+### BASIS32.v1 (Deterministic Feature Basis)
+
+BASIS32 is a derived, deterministic 32-feature basis for routing, search, clustering, and UI projection.
+
+- **Derived only**: emitted as `derived_feature32` events with `authority: derived`
+- **Deterministic + replayable**: same inputs yield same features; no ML drift
+- **Quantized + packed**: 32 features packed into 64-bit (2-bit buckets) or 128-bit (4-bit buckets)
+- **Never authoritative**: features cannot accept/reject events or modify PF16
+
+Feature inputs include event graphs, PF16 identity slots (authority, boundary, intent, federation), and discovery hints.
+
 ## Hardware Integration
 
 System scales down to **ESP32** nodes for:
@@ -222,6 +233,15 @@ trace.jsonl → filter (awk/scope) → projector (WASM) → view
 ```
 
 Scope enforcement happens before projection. Discovery routes knowledge of data, not data itself.
+
+## Implementation Add-ons (1003)
+
+Optional drop-ins that extend TileStore and discovery without changing core invariants:
+
+- **Snapshotting**: periodic snapshots stored under `snapshots/` and referenced via `index.json` (`last_snapshot`, `snapshot_event`)
+- **SID pointers (ADDR.v1)**: mutable pointer files for roles like `head`, `index`, `manifest`, `snapshot/<event>`
+- **Discovery gossip**: UDP tip advertisements (routing knowledge only, no data)
+- **Discovery Graph v1**: in-memory/optional JSON persistence for `who_has`/`best_tip`/`peer_tiles`
 
 ## Implementation Phases
 
@@ -283,6 +303,8 @@ Key documentation in `dev-docs/`:
 - `01 - Three execution classes.md`: Runtime environments and roles
 - `04 - Community Metaverse Protocol.md`: White paper on trace-based reality
 - `1002 - IMPLEMENTATION_GUIDE.md`: NF.v1 + ADDR.v1 + PF16.v1 implementation
+- `1003 -IMPLEMENTATIOM ADDON.md`: Snapshotting, SID pointers, discovery gossip, Discovery Graph
+- `1004 - BASIS32.v1.md`: Deterministic 32-feature basis for routing/search/projection
 
 ## Design Principles
 

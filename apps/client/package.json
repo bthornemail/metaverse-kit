@@ -1,6 +1,6 @@
 {
   "name": "@metaverse-kit/client",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Metaverse Kit web client - Infinite 2D canvas with multi-user collaboration",
   "type": "module",
   "scripts": {
@@ -9,10 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@metaverse-kit/protocol": "^0.1.0",
-    "@metaverse-kit/shadow-canvas": "^0.1.0",
+    "@metaverse-kit/protocol": "^0.0.1",
+    "@metaverse-kit/shadow-canvas": "^0.0.1",
+    "@react-three/fiber": "^8.15.12",
+    "@react-three/drei": "^9.99.5",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "three": "^0.160.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",

@@ -11,10 +11,14 @@
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "dev:server": "cd apps/server && node --watch src/server.ts",
+    "dev:server": "cd apps/server && tsx --watch src/server.ts",
     "dev:client": "cd apps/client && npm run dev",
     "clean": "rm -rf node_modules packages/*/node_modules packages/*/dist apps/*/node_modules apps/*/dist tools/*/node_modules tools/*/dist",
-    "typecheck": "tsc --build"
+    "typecheck": "tsc --build",
+    "mv-init": "node tools/mv-init/index.js",
+    "mv-host": "node tools/mv-host/index.js",
+    "mv-client": "node tools/mv-client/index.js",
+    "mv-replay": "node tools/mv-replay/index.js"
   },
   "devDependencies": {
     "typescript": "^5.3.3",

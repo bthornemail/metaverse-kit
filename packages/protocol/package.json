@@ -1,6 +1,6 @@
 {
   "name": "@metaverse-kit/protocol",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Event protocol types, validators, and codecs for Metaverse Kit",
   "type": "module",
   "main": "dist/index.js",

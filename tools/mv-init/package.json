@@ -1,0 +1,8 @@
+{
+  "name": "@metaverse-kit/mv-init",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mv-init": "./index.js"
+  }
+}

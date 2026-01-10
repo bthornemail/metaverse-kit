@@ -1,0 +1,8 @@
+{
+  "name": "@metaverse-kit/mv-client",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mv-client": "./index.js"
+  }
+}

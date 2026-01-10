@@ -26,7 +26,7 @@ The Metaverse Starter Kit enables multi-user editing with deterministic replay, 
 ### Event Processing Pipeline
 
 ```
-Events (JSONL) → Validate (Scope + NF) → Store (TileStore) → Materialize (Shadow Canvas) → Project (Views)
+Events (JSONL) → Validate (Scope + NF) → Store (TileStore) → Materialize (Shadow Canvas) → BASIS32 → Project (Views)
 ```
 
 ## Repository Structure
@@ -39,14 +39,19 @@ metaverse-kit/
 │   ├── nf/            # Normalization + equivalence
 │   ├── shadow-canvas/ # State materializer
 │   ├── tilestore/     # Storage engine
+│   ├── basis32/       # Deterministic feature basis
+│   ├── discovery/     # Discovery graph
 │   └── ...
 ├── apps/
 │   ├── server/        # HTTP/WebSocket API
-│   └── client/        # React infinite canvas UI
+│   ├── client/        # React infinite canvas UI
+│   ├── mcp-server/    # MCP Streamable HTTP server
+│   └── mcp-client/    # MCP CLI client
 ├── tools/             # CLI utilities
 │   ├── mv-init/       # Create world
 │   ├── mv-host/       # Run server
-│   └── mv-client/     # Open client
+│   ├── mv-client/     # Open client
+│   └── mv-replay/     # Extract event ranges
 ├── world-format/      # Dotfiles (.ulp-root, .ulp-scope, .ulp-ignore)
 ├── examples/          # Demo worlds
 ├── dev-docs/          # Architecture documentation
@@ -63,7 +68,7 @@ metaverse-kit/
 ### Installation
 
 ```bash
-git clone https://github.com/your-org/metaverse-kit.git
+git clone https://github.com/bthornemail/metaverse-kit.git
 cd metaverse-kit
 npm install
 npm run build
@@ -71,7 +76,13 @@ npm run build
 
 ### Quick Start
 
-Coming soon - see implementation plan in `/data/data/com.termux/files/home/.claude/plans/bright-swinging-mochi.md`
+```bash
+npm run mv-init -- --world world --space demo
+npm run mv-host -- --world world
+npm run mv-client
+```
+
+See `QUICKSTART.md` for full setup and usage.
 
 ## Development
 
@@ -92,20 +103,24 @@ Comprehensive architecture documentation is available in the `dev-docs/` directo
 
 ## Status
 
-**Current Phase:** Phase 0 - Foundation Setup
+**Current Phase:** Phase 4 - Client Application (v0 + partial v1)
 
 **Implementation Progress:**
-- ✅ Monorepo structure
-- ⏳ Core protocol types
-- ⏳ Storage layer
-- ⏳ Server application
-- ⏳ Client application
+- ✅ Core protocol + NF + ADDR + TileStore + Shadow Canvas
+- ✅ Snapshots, SID pointers, UDP discovery gossip
+- ✅ Discovery Graph v1 + broker endpoints
+- ✅ 2D canvas + drawing tools + timeline scrubber
+- ✅ Presence cursors over WebSocket
+- ✅ 3D view (OBJ/MTL/GLB + MP4/WAV placeholders)
+- ✅ MCP Streamable HTTP server + client scaffold
 
 See the implementation plan for detailed roadmap.
 
 ## License
 
-TBD
+This project is released under two project-specific draft licenses:
+- Architecture Preservation License (APL) - see `docs/licenses/architecture-preservation-license.md`
+- Hitecture Preservation License (HPL) - see `docs/licenses/hitecture-preservation-license.md`
 
 ## Contributing
 

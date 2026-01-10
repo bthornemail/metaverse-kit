@@ -51,17 +51,14 @@ Doesn’t have to be final. Just enough to ship.
 ### 2) Top-level repo shape
 
 ```
-community-metaverse/
-├── SPEC.md                 # the white paper you now have
-├── QUICKSTART.md           # “run this in 10 minutes”
+metaverse-kit/
+├── QUICKSTART.md
 ├── world-format/           # .ulp-root, examples
-├── packages/               # protocol, tilestore, shadow-canvas
-├── apps/                   # server + client
-├── hardware/               # esp32 + lora sketches
+├── packages/               # protocol, addr, nf, shadow-canvas, tilestore, basis32, discovery
+├── apps/                   # server, client, mcp-server, mcp-client
+├── tools/                  # mv-init, mv-host, mv-client, mv-replay
 └── examples/
-    ├── demo-world/
-    ├── disaster-sim/
-    └── local-event/
+    └── demo-world/
 ```
 
 ---

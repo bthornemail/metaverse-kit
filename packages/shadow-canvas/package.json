@@ -1,6 +1,6 @@
 {
   "name": "@metaverse-kit/shadow-canvas",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Shadow Canvas - Deterministic state materializer for Metaverse Kit",
   "type": "module",
   "main": "dist/index.js",
@@ -32,7 +32,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@metaverse-kit/protocol": "^0.1.0"
+    "@metaverse-kit/protocol": "^0.0.1"
   },
   "devDependencies": {
     "typescript": "^5.3.3"

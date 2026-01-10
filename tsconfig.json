@@ -5,9 +5,17 @@
     { "path": "./packages/protocol" },
     { "path": "./packages/addr" },
     { "path": "./packages/nf" },
+    { "path": "./packages/basis32" },
+    { "path": "./packages/discovery" },
     { "path": "./packages/shadow-canvas" },
     { "path": "./packages/tilestore" },
     { "path": "./apps/server" },
-    { "path": "./apps/client" }
+    { "path": "./apps/client" },
+    { "path": "./apps/mcp-server" },
+    { "path": "./apps/mcp-client" },
+    { "path": "./tools/mv-init" },
+    { "path": "./tools/mv-host" },
+    { "path": "./tools/mv-client" },
+    { "path": "./tools/mv-replay" }
   ]
 }

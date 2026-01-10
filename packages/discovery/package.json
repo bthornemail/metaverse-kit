@@ -1,0 +1,37 @@
+{
+  "name": "@metaverse-kit/discovery",
+  "version": "0.0.1",
+  "description": "Discovery Graph v1 for Metaverse Kit (tips, peers, routing knowledge)",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "echo \"Tests coming soon\"",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "metaverse",
+    "discovery",
+    "routing",
+    "gossip",
+    "broker"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/metaverse-kit.git",
+    "directory": "packages/discovery"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/metaverse-kit/issues"
+  },
+  "homepage": "https://github.com/your-org/metaverse-kit#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

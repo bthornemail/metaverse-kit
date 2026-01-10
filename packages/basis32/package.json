@@ -1,0 +1,37 @@
+{
+  "name": "@metaverse-kit/basis32",
+  "version": "0.0.1",
+  "description": "BASIS32.v1 - Deterministic 32-feature basis utilities for Metaverse Kit",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "echo \"Tests coming soon\"",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "metaverse",
+    "basis32",
+    "features",
+    "deterministic",
+    "routing"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/metaverse-kit.git",
+    "directory": "packages/basis32"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/metaverse-kit/issues"
+  },
+  "homepage": "https://github.com/your-org/metaverse-kit#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

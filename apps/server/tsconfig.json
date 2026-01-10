@@ -9,6 +9,7 @@
   "references": [
     { "path": "../../packages/protocol" },
     { "path": "../../packages/nf" },
-    { "path": "../../packages/tilestore" }
+    { "path": "../../packages/tilestore" },
+    { "path": "../../packages/discovery" }
   ]
 }

@@ -12,6 +12,8 @@ export type LayerId = "layout" | "physics" | "presentation" | "meta";
 export type ActorId = string; // Format: "user:alice" or "solver:phys_v1"
 export type NodeId = string; // Format: "node:ulid"
 export type HashRef = string; // Format: "sha256:<hex>" or "blake3:<hex>"
+export type UrlRef = string; // URL or path reference
+export type InlineText = string;
 
 // ============================================================================
 // Scope Types
@@ -84,8 +86,11 @@ export type Operation =
   | "unlink_nodes"
   | "delete_node"
   | "merge"
+  | "derived_feature32"
   | "set_geometry"     // v1
   | "set_media"        // v1
+  | "set_text"         // v1
+  | "set_document"     // v1
   | "set_physics"      // v2
   | "physics_step"     // v2
   | `macro.${string}`; // macro namespace for deterministic expansions
@@ -142,14 +147,47 @@ export interface MergeEvent extends EventEnvelope {
 export interface SetGeometryEvent extends EventEnvelope {
   operation: "set_geometry";
   node_id: NodeId;
-  geometry: { mesh_ref: HashRef }; // content hash reference
-  material?: Record<string, unknown>;
+  geometry: {
+    kind: "svg" | "obj" | "glb";
+    ref: HashRef | UrlRef;
+    units?: "m" | "cm" | "px";
+  };
 }
 
 export interface SetMediaEvent extends EventEnvelope {
   operation: "set_media";
   node_id: NodeId;
-  media: { ref: HashRef; mime?: string }; // content hash reference
+  media: {
+    kind: "svg" | "obj" | "mtl" | "glb" | "wav" | "mp4";
+    ref: HashRef | UrlRef;
+    mime?: string;
+    meta?: {
+      width?: number;
+      height?: number;
+      duration?: number;
+      material_ref?: HashRef | UrlRef;
+    };
+  };
+}
+
+export interface SetTextEvent extends EventEnvelope {
+  operation: "set_text";
+  node_id: NodeId;
+  text: {
+    kind: "plain" | "markdown" | "code" | "json" | "yaml";
+    ref: HashRef | UrlRef | InlineText;
+    language?: string;
+  };
+}
+
+export interface SetDocumentEvent extends EventEnvelope {
+  operation: "set_document";
+  node_id: NodeId;
+  document: {
+    kind: "pdf" | "md-page" | "canvas2d" | "html";
+    ref: HashRef | UrlRef;
+    pages?: number;
+  };
 }
 
 // v2 operations
@@ -167,6 +205,23 @@ export interface PhysicsStepEvent extends EventEnvelope {
   updates: Array<{ node_id: NodeId; transform: Transform }>;
 }
 
+// Derived features (BASIS32)
+export interface DerivedFeature32Event extends EventEnvelope {
+  operation: "derived_feature32";
+  basis: string; // e.g., "BASIS32.v1"
+  for: {
+    tile: TileId;
+    rid?: HashRef;
+  };
+  window?: {
+    since_event?: EventId;
+    until_event?: EventId;
+  };
+  features: number[]; // 32 buckets
+  packed64?: string; // hex string, e.g. "0x..."
+  packed128?: [string, string]; // two uint64 hex strings
+}
+
 // ============================================================================
 // Union of all event types (for discriminated unions)
 // ============================================================================
@@ -181,8 +236,11 @@ export type WorldEvent =
   | MergeEvent
   | SetGeometryEvent
   | SetMediaEvent
+  | SetTextEvent
+  | SetDocumentEvent
   | SetPhysicsEvent
   | PhysicsStepEvent
+  | DerivedFeature32Event
   | (EventEnvelope & Record<string, unknown>); // Forward-compatible for macros
 
 // ============================================================================
@@ -218,6 +276,10 @@ export interface Snapshot {
     transform: Transform;
     properties?: Record<string, unknown>;
     links?: Link[];
+    geometry?: SetGeometryEvent["geometry"];
+    media?: SetMediaEvent["media"];
+    text?: SetTextEvent["text"];
+    document?: SetDocumentEvent["document"];
     deleted?: boolean;
   }>;
 }

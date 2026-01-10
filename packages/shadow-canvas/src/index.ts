@@ -16,6 +16,10 @@ import type {
   UnlinkNodesEvent,
   DeleteNodeEvent,
   PhysicsStepEvent,
+  SetGeometryEvent,
+  SetMediaEvent,
+  SetTextEvent,
+  SetDocumentEvent,
 } from "@metaverse-kit/protocol";
 
 // ============================================================================
@@ -28,6 +32,10 @@ export interface NodeState {
   transform: Transform;
   properties: Record<string, unknown>;
   links: Link[];
+  geometry?: SetGeometryEvent["geometry"];
+  media?: SetMediaEvent["media"];
+  text?: SetTextEvent["text"];
+  document?: SetDocumentEvent["document"];
   deleted?: boolean;
 }
 
@@ -116,6 +124,22 @@ export function applyEvent(state: TileState, ev: WorldEvent): void {
       applyDeleteNode(state, ev as DeleteNodeEvent);
       break;
 
+    case "set_geometry":
+      applySetGeometry(state, ev as SetGeometryEvent);
+      break;
+
+    case "set_media":
+      applySetMedia(state, ev as SetMediaEvent);
+      break;
+
+    case "set_text":
+      applySetText(state, ev as SetTextEvent);
+      break;
+
+    case "set_document":
+      applySetDocument(state, ev as SetDocumentEvent);
+      break;
+
     case "physics_step":
       applyPhysicsStep(state, ev as PhysicsStepEvent);
       break;
@@ -198,6 +222,30 @@ function applyDeleteNode(state: TileState, ev: DeleteNodeEvent): void {
   node.deleted = true;
 }
 
+function applySetGeometry(state: TileState, ev: SetGeometryEvent): void {
+  const node = state.nodes.get(ev.node_id);
+  if (!node || node.deleted) return;
+  node.geometry = ev.geometry;
+}
+
+function applySetMedia(state: TileState, ev: SetMediaEvent): void {
+  const node = state.nodes.get(ev.node_id);
+  if (!node || node.deleted) return;
+  node.media = ev.media;
+}
+
+function applySetText(state: TileState, ev: SetTextEvent): void {
+  const node = state.nodes.get(ev.node_id);
+  if (!node || node.deleted) return;
+  node.text = ev.text;
+}
+
+function applySetDocument(state: TileState, ev: SetDocumentEvent): void {
+  const node = state.nodes.get(ev.node_id);
+  if (!node || node.deleted) return;
+  node.document = ev.document;
+}
+
 function applyPhysicsStep(state: TileState, ev: PhysicsStepEvent): void {
   // Physics steps apply derived transform updates
   for (const update of ev.updates) {
@@ -259,6 +307,10 @@ export function makeSnapshot(state: TileState, atEvent: EventId): Snapshot {
       transform: n.transform,
       properties: n.properties,
       links: n.links,
+      geometry: n.geometry,
+      media: n.media,
+      text: n.text,
+      document: n.document,
       deleted: n.deleted,
     })),
   };

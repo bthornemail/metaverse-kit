@@ -13,6 +13,10 @@ import type {
   SegmentRef,
   Snapshot,
 } from "@metaverse-kit/protocol";
+import { writePointer } from "./pointers.js";
+import { MVPSnapshotter } from "./mvp_snapshotter.js";
+import { readLatestSnapshot, writeSnapshotFile, type Snapshotter } from "./snapshot.js";
+import { UdpDiscovery } from "./discovery_udp.js";
 
 // ============================================================================
 // Configuration
@@ -22,6 +26,10 @@ export interface TileStoreOptions {
   rootDir: string; // Root directory for world storage
   flushBytes?: number; // Flush when buffer exceeds this size (default: 256KB)
   flushMs?: number; // Flush every N milliseconds (default: 5000ms)
+  snapshotEverySegments?: number; // Snapshot every N segment flushes (default: 10)
+  peerId?: string; // Discovery peer id (default: "peer:local")
+  enableDiscovery?: boolean; // Broadcast tips over UDP (default: true)
+  snapshotter?: Snapshotter; // Custom snapshotter
 }
 
 // ============================================================================
@@ -46,11 +54,23 @@ export class TileStore {
   private flushMs: number;
   private buffers = new Map<string, BufferedTile>();
   private flushInterval: NodeJS.Timeout | null = null;
+  private snapEvery: number;
+  private peerId: string;
+  private discovery?: UdpDiscovery;
+  private segFlushCount = new Map<string, number>();
+  private snapshotter: Snapshotter;
 
   constructor(opts: TileStoreOptions) {
     this.rootDir = opts.rootDir;
     this.flushBytes = opts.flushBytes ?? 256 * 1024; // 256 KB
     this.flushMs = opts.flushMs ?? 5000; // 5 seconds
+    this.snapEvery = opts.snapshotEverySegments ?? 10;
+    this.peerId = opts.peerId ?? "peer:local";
+    this.snapshotter = opts.snapshotter ?? MVPSnapshotter;
+
+    if (opts.enableDiscovery !== false) {
+      this.discovery = new UdpDiscovery();
+    }
 
     // Start periodic flush timer
     this.flushInterval = setInterval(() => this.periodicFlush(), 1000);
@@ -63,6 +83,11 @@ export class TileStore {
     if (this.flushInterval) {
       clearInterval(this.flushInterval);
       this.flushInterval = null;
+    }
+
+    if (this.discovery) {
+      this.discovery.sock.close();
+      this.discovery = undefined;
     }
 
     // Flush all pending buffers
@@ -156,6 +181,37 @@ export class TileStore {
       lastEv.event_id
     );
 
+    // Write SID pointers + broadcast tip
+    const tip = await this.getTileTip(buf.space_id, buf.tile_id);
+    if (tip?.tip_segment) {
+      await writePointer({
+        rootDir: this.rootDir,
+        space_id: buf.space_id,
+        tid: buf.tile_id,
+        role: "head",
+        points_to: tip.tip_segment as HashRef,
+      });
+
+      this.discovery?.broadcastTip({
+        type: "advertise_tip",
+        peer_id: this.peerId,
+        space_id: buf.space_id,
+        tile_id: buf.tile_id,
+        tip_event: tip.tip_event,
+        tip_segment: tip.tip_segment,
+        ts: Date.now(),
+      });
+    }
+
+    // Snapshot policy: every N segment flushes
+    const k = this.bufferKey(buf.space_id, buf.tile_id);
+    const c = (this.segFlushCount.get(k) ?? 0) + 1;
+    this.segFlushCount.set(k, c);
+
+    if (c % this.snapEvery === 0) {
+      await this.trySnapshot(buf.space_id, buf.tile_id);
+    }
+
     // Clear buffer
     buf.events = [];
     buf.bytes = 0;
@@ -204,14 +260,24 @@ export class TileStore {
     // If no filter, return all segments
     if (!afterEvent) return manifest.segments;
 
-    // Find segments after the specified event
+    // Find segments after the specified event using range hints.
+    // If afterEvent matches from_event, include that segment.
+    // If afterEvent matches to_event, include following segments.
     const out: SegmentRef[] = [];
     let include = false;
 
     for (const seg of manifest.segments) {
+      if (seg.from_event === afterEvent) {
+        include = true;
+        out.push(seg);
+        continue;
+      }
+
       if (include) {
         out.push(seg);
+        continue;
       }
+
       if (seg.to_event === afterEvent) {
         include = true;
       }
@@ -254,6 +320,75 @@ export class TileStore {
   async getSnapshot(hash: HashRef): Promise<Snapshot> {
     const data = await this.getObject(hash);
     return JSON.parse(data.toString("utf8")) as Snapshot;
+  }
+
+  async trySnapshot(space: SpaceId, tile: TileId): Promise<void> {
+    const lastSnap = await readLatestSnapshot({
+      rootDir: this.rootDir,
+      space_id: space,
+      tile_id: tile,
+    });
+
+    const manifestPath = this.manifestPath(space, tile);
+    let manifest: Manifest;
+    try {
+      const data = await fs.readFile(manifestPath, "utf8");
+      manifest = JSON.parse(data) as Manifest;
+    } catch (err: any) {
+      if (err.code === "ENOENT") return;
+      throw err;
+    }
+
+    const snapshotEvent = lastSnap?.at_event ?? null;
+    let segmentsToApply: SegmentRef[] = manifest.segments;
+
+    if (snapshotEvent) {
+      let include = false;
+      segmentsToApply = [];
+      for (const seg of manifest.segments) {
+        if (include) segmentsToApply.push(seg);
+        if (seg.to_event === snapshotEvent) include = true;
+      }
+      if (segmentsToApply.length === 0) {
+        segmentsToApply = manifest.segments;
+      }
+    }
+
+    const segmentTexts = await Promise.all(
+      segmentsToApply.map(async (seg) => {
+        const bytes = await this.getObject(seg.hash as HashRef);
+        return bytes.toString("utf8");
+      })
+    );
+
+    const snap = await this.snapshotter.buildSnapshot({
+      space_id: space,
+      tile_id: tile,
+      lastSnapshot: lastSnap,
+      segmentTexts,
+    });
+
+    const snapHash = await writeSnapshotFile({
+      rootDir: this.rootDir,
+      space_id: space,
+      tile_id: tile,
+      snap,
+    });
+
+    const indexPath = this.indexPath(space, tile);
+    const idx = JSON.parse(await fs.readFile(indexPath, "utf8"));
+    idx.last_snapshot = snapHash;
+    idx.snapshot_event = snap.at_event;
+    idx.updated_at = Date.now();
+    await fs.writeFile(indexPath, stableStringify(idx), "utf8");
+
+    await writePointer({
+      rootDir: this.rootDir,
+      space_id: space,
+      tid: tile,
+      role: `snapshot/${snap.at_event}`,
+      points_to: snapHash,
+    });
   }
 
   // ==========================================================================
@@ -348,3 +483,8 @@ export class TileStore {
     await fs.mkdir(path.join(base, "snapshots"), { recursive: true });
   }
 }
+
+export { MVPSnapshotter } from "./mvp_snapshotter.js";
+export { writePointer } from "./pointers.js";
+export { UdpDiscovery } from "./discovery_udp.js";
+export type { Snapshotter } from "./snapshot.js";

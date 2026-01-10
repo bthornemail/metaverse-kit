@@ -1,0 +1,8 @@
+{
+  "name": "@metaverse-kit/mv-host",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mv-host": "./index.js"
+  }
+}

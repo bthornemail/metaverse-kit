@@ -1,6 +1,6 @@
 {
   "name": "@metaverse-kit/server",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Metaverse Kit HTTP/WebSocket server for tile sync and event ingestion",
   "type": "module",
   "main": "dist/server.js",
@@ -10,9 +10,11 @@
     "start": "node dist/server.js"
   },
   "dependencies": {
-    "@metaverse-kit/protocol": "^0.1.0",
-    "@metaverse-kit/nf": "^0.1.0",
-    "@metaverse-kit/tilestore": "^0.1.0"
+    "@metaverse-kit/discovery": "^0.0.1",
+    "@metaverse-kit/protocol": "^0.0.1",
+    "@metaverse-kit/nf": "^0.0.1",
+    "@metaverse-kit/tilestore": "^0.0.1",
+    "ws": "^8.16.0"
   },
   "devDependencies": {
     "typescript": "^5.3.3",

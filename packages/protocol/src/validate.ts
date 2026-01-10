@@ -305,6 +305,129 @@ function validateMerge(obj: Record<string, unknown>): void {
   }
 }
 
+function validateSetGeometry(obj: Record<string, unknown>): void {
+  const problems: string[] = [];
+
+  if (!isString(obj["node_id"])) {
+    problems.push("set_geometry.node_id must be a string");
+  }
+  if (!isObject(obj["geometry"])) {
+    problems.push("set_geometry.geometry must be an object");
+  } else {
+    const geometry = obj["geometry"] as Record<string, unknown>;
+    const kind = geometry["kind"];
+    if (!isString(kind) || !["svg", "obj", "glb"].includes(kind)) {
+      problems.push("set_geometry.geometry.kind must be 'svg', 'obj', or 'glb'");
+    }
+    if (!isString(geometry["ref"])) {
+      problems.push("set_geometry.geometry.ref must be a string");
+    }
+    if (
+      geometry["units"] !== undefined &&
+      (!isString(geometry["units"]) || !["m", "cm", "px"].includes(geometry["units"]))
+    ) {
+      problems.push("set_geometry.geometry.units must be 'm', 'cm', or 'px' if provided");
+    }
+  }
+
+  if (problems.length > 0) {
+    throw new ValidationError(problems);
+  }
+}
+
+function validateSetMedia(obj: Record<string, unknown>): void {
+  const problems: string[] = [];
+
+  if (!isString(obj["node_id"])) {
+    problems.push("set_media.node_id must be a string");
+  }
+  if (!isObject(obj["media"])) {
+    problems.push("set_media.media must be an object");
+  } else {
+    const media = obj["media"] as Record<string, unknown>;
+    const kind = media["kind"];
+    if (
+      !isString(kind) ||
+      !["svg", "obj", "mtl", "glb", "wav", "mp4"].includes(kind)
+    ) {
+      problems.push("set_media.media.kind must be svg|obj|mtl|glb|wav|mp4");
+    }
+    if (!isString(media["ref"])) {
+      problems.push("set_media.media.ref must be a string");
+    }
+    if (media["mime"] !== undefined && !isString(media["mime"])) {
+      problems.push("set_media.media.mime must be a string if provided");
+    }
+    if (media["meta"] !== undefined && !isObject(media["meta"])) {
+      problems.push("set_media.media.meta must be an object if provided");
+    }
+  }
+
+  if (problems.length > 0) {
+    throw new ValidationError(problems);
+  }
+}
+
+function validateSetText(obj: Record<string, unknown>): void {
+  const problems: string[] = [];
+
+  if (!isString(obj["node_id"])) {
+    problems.push("set_text.node_id must be a string");
+  }
+  if (!isObject(obj["text"])) {
+    problems.push("set_text.text must be an object");
+  } else {
+    const text = obj["text"] as Record<string, unknown>;
+    const kind = text["kind"];
+    if (
+      !isString(kind) ||
+      !["plain", "markdown", "code", "json", "yaml"].includes(kind)
+    ) {
+      problems.push("set_text.text.kind must be plain|markdown|code|json|yaml");
+    }
+    if (!isString(text["ref"])) {
+      problems.push("set_text.text.ref must be a string");
+    }
+    if (text["language"] !== undefined && !isString(text["language"])) {
+      problems.push("set_text.text.language must be a string if provided");
+    }
+  }
+
+  if (problems.length > 0) {
+    throw new ValidationError(problems);
+  }
+}
+
+function validateSetDocument(obj: Record<string, unknown>): void {
+  const problems: string[] = [];
+
+  if (!isString(obj["node_id"])) {
+    problems.push("set_document.node_id must be a string");
+  }
+  if (!isObject(obj["document"])) {
+    problems.push("set_document.document must be an object");
+  } else {
+    const doc = obj["document"] as Record<string, unknown>;
+    const kind = doc["kind"];
+    if (
+      !isString(kind) ||
+      !["pdf", "md-page", "canvas2d", "html"].includes(kind)
+    ) {
+      problems.push("set_document.document.kind must be pdf|md-page|canvas2d|html");
+    }
+    if (!isString(doc["ref"])) {
+      problems.push("set_document.document.ref must be a string");
+    }
+    if (doc["pages"] !== undefined && !isNumber(doc["pages"])) {
+      problems.push("set_document.document.pages must be a number if provided");
+    }
+  }
+
+  if (problems.length > 0) {
+    throw new ValidationError(problems);
+  }
+}
+
 function validatePhysicsStep(obj: Record<string, unknown>): void {
   const problems: string[] = [];
 
@@ -337,6 +460,48 @@ function validatePhysicsStep(obj: Record<string, unknown>): void {
           problems.push(`physics_step.updates[${i}]: ${e.message}`);
         }
       }
+    }
+  }
+
+  if (problems.length > 0) {
+    throw new ValidationError(problems);
+  }
+}
+
+function validateDerivedFeature32(obj: Record<string, unknown>): void {
+  const problems: string[] = [];
+
+  if (!isString(obj["basis"])) {
+    problems.push("derived_feature32.basis must be a string");
+  }
+
+  if (!isObject(obj["for"])) {
+    problems.push("derived_feature32.for must be an object");
+  } else if (!isString((obj["for"] as Record<string, unknown>)["tile"])) {
+    problems.push("derived_feature32.for.tile must be a string");
+  }
+
+  if (!isArray(obj["features"]) || obj["features"].length !== 32) {
+    problems.push("derived_feature32.features must be an array of 32 numbers");
+  } else if (!obj["features"].every((x: unknown) => isNumber(x) && x >= 0 && x <= 15)) {
+    problems.push("derived_feature32.features must contain numbers in range 0..15");
+  }
+
+  if (obj["packed64"] !== undefined && !isString(obj["packed64"])) {
+    problems.push("derived_feature32.packed64 must be a string if provided");
+  }
+
+  if (obj["packed128"] !== undefined) {
+    const p128 = obj["packed128"];
+    if (!isArray(p128) || p128.length !== 2 || !p128.every(isString)) {
+      problems.push("derived_feature32.packed128 must be a [string, string] if provided");
+    }
+  }
+
+  if (isObject(obj["scope"])) {
+    const authority = (obj["scope"] as Record<string, unknown>)["authority"];
+    if (authority !== "derived") {
+      problems.push("derived_feature32.scope.authority must be 'derived'");
     }
   }
 
@@ -387,8 +552,26 @@ export function validateWorldEvent(ev: unknown): WorldEvent {
         validatePhysicsStep(obj);
         break;
 
+      case "derived_feature32":
+        validateDerivedFeature32(obj);
+        break;
+
       case "set_geometry":
+        validateSetGeometry(obj);
+        break;
+
       case "set_media":
+        validateSetMedia(obj);
+        break;
+
+      case "set_text":
+        validateSetText(obj);
+        break;
+
+      case "set_document":
+        validateSetDocument(obj);
+        break;
+
       case "set_physics":
         // v1/v2 operations: only envelope required for now
         break;
