@@ -1,0 +1,4 @@
+hydrogen.yaml∩oxygen.yaml	shared_atoms	[proton]	AWK_ARRAY
+hydrogen.yaml∩oxygen.yaml	intersection_count	1	AWK_STRNUM
+hydrogen.yaml∩oxygen.yaml	emerges_from	hydrogen.yaml	AWK_VALUE_COOKIE
+hydrogen.yaml∩oxygen.yaml	emerges_from	oxygen.yaml	AWK_VALUE_COOKIE

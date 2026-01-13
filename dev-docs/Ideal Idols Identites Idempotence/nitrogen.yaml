@@ -1,0 +1,6 @@
+- name: nitrogen
+- type: idol
+- mnemonic: N
+- contains: [N]
+- neighbors: [oxygen, carbon]
+- boundary: tetrahedron

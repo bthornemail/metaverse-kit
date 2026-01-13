@@ -14,6 +14,83 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Local-first**: Everything works offline and synchronizes opportunistically.
 - **Fail-fast scope**: Boundaries and authority are explicit and enforced early via dotfiles.
 - **Deterministic replay**: Replay must always converge to the same state.
+- **Symbolic core, numeric projections**: Numbers are symbols (IDs, atoms, counts), never measurements in authoritative events.
+
+### The Symbolic/Numeric Boundary
+
+**CRITICAL ARCHITECTURAL PRINCIPLE**: This system uses symbolic composition with numeric projections, not numeric simulation.
+
+```
+SYMBOLIC CORE (authority: source)
+    ↓ (one-way only)
+NUMERIC PROJECTIONS (authority: derived)
+    ↓
+VIEWS (ephemeral, not stored)
+```
+
+**What This Means**:
+
+Numbers in this system are **symbolic atoms** that participate in relations, not measurements of space or time.
+
+- `timestamp` → causal ordering atom (ULID), not time measurement
+- `tile: "z0/x0/y0"` → topological name, not geographic coordinates
+- `event_id` → symbolic identity atom
+- Distance = graph path length (BFS hops), not Euclidean measurement
+- Position = what you're connected to (neighbors), not where you sit in space
+
+**Allowed in Source Authority** (`authority: source`):
+- ✅ Symbolic atoms (IDs, mnemonics, content hashes)
+- ✅ Counts and bucket indices (combinatorial properties: vertex count, feature bucket)
+- ✅ Relations and constraints (graph structure: neighbors, parent, adjacent)
+
+**Prohibited in Source Authority**:
+- ❌ Coordinates (x/y/z positions, offsets)
+- ❌ Rotations (quaternions, Euler angles)
+- ❌ Scales (numeric scaling factors)
+- ❌ Time measurements (numeric timestamps for ordering - use ULID event_id instead)
+
+**Where Numeric Data Lives**:
+- Projections (`authority: derived`) - layout algorithms, physics sims, rendering
+- Ephemeral presence (not stored in ledger) - cursors, viewports
+- Intrinsic metadata (from file headers) - image width/height
+
+**Example**:
+
+❌ **Wrong** (numeric authority):
+```json
+{
+  "operation": "update_transform",
+  "scope": {"authority": "source"},
+  "transform": {"position": [100, 200, 0]}
+}
+```
+
+✅ **Correct** (symbolic authority):
+```json
+{
+  "operation": "link_nodes",
+  "scope": {"authority": "source"},
+  "from_node": "node:abc",
+  "relation": "adjacent",
+  "to_node": "node:def"
+}
+```
+
+✅ **Correct** (numeric projection):
+```json
+{
+  "operation": "project_layout_spring",
+  "scope": {"authority": "derived"},
+  "node_id": "node:abc",
+  "transform": {"position": [100, 200, 0]}
+}
+```
+
+**See**:
+- `dev-docs/SYMBOLIC_NUMERIC_AUDIT.md` - Full audit of protocol
+- `packages/protocol/BOUNDARY_VALIDATION.md` - Validation layer usage
+- `dev-docs/PROJECTION_PATTERNS.md` - How to build projectors
+- `dev-docs/Ideal Idols Identites Idempotence/` - Pure combinatorial geometry framework
 
 ## Architecture Components
 
@@ -261,6 +338,7 @@ When modifying code, always maintain:
 4. **Scope enforcement**: Validate against dotfiles before storage
 5. **Causal ordering**: Respect DAG structure in event processing
 6. **Boundary discipline**: Keep authority roles (source vs derived) distinct
+7. **Symbolic/numeric firewall**: Numeric measurements must never appear in source authority events - only in derived projections
 
 ## Security Model
 
@@ -305,6 +383,12 @@ Key documentation in `dev-docs/`:
 - `1002 - IMPLEMENTATION_GUIDE.md`: NF.v1 + ADDR.v1 + PF16.v1 implementation
 - `1003 -IMPLEMENTATIOM ADDON.md`: Snapshotting, SID pointers, discovery gossip, Discovery Graph
 - `1004 - BASIS32.v1.md`: Deterministic 32-feature basis for routing/search/projection
+- `SYMBOLIC_NUMERIC_AUDIT.md`: Audit of numeric authority violations in protocol
+- `PROJECTION_PATTERNS.md`: Standard patterns for building projectors (2D/3D/AR/VR)
+- `Ideal Idols Identites Idempotence/`: Pure combinatorial geometry framework
+
+In `packages/protocol/`:
+- `BOUNDARY_VALIDATION.md`: Using the symbolic/numeric boundary validation layer
 
 ## Design Principles
 

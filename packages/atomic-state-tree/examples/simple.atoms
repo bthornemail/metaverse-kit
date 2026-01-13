@@ -1,0 +1,19 @@
+# Simple AtomStateTree example
+# Initialize zero state and set some values
+
+ZERO
+
+# Set some atoms in FrameA.Local
+SET State.FrameA.Local.Block1.Record1.Closure1.Logic1.Relation1.L atom_1
+SET State.FrameA.Local.Block1.Record1.Closure1.Logic1.Relation1.R atom_2
+
+# Set atoms in different contexts
+SET State.FrameA.Remote.Block1.Record1.Closure1.Logic1.Relation1.L remote_1
+SET State.FrameB.Canonical.Block2.Record2.Closure2.Logic2.Relation2.R canonical_1
+
+# Get some values back
+GET State.FrameA.Local.Block1.Record1.Closure1.Logic1.Relation1.L
+GET State.FrameB.Canonical.Block2.Record2.Closure2.Logic2.Relation2.R
+
+# Dump full state
+DUMP

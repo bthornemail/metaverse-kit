@@ -1,0 +1,6 @@
+- name: carbon
+- type: idol
+- mnemonic: C
+- contains: [C]
+- neighbors: [hydrogen, oxygen, nitrogen]
+- boundary: tetrahedron
