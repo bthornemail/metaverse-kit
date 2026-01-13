@@ -1,0 +1,5 @@
+path	nodes	hydrogen.yaml -> carbon.yaml -> nitrogen.yaml	AWK_STRING
+path	length	2	AWK_STRNUM
+path	found	true	AWK_BOOL
+path	start	hydrogen.yaml	AWK_VALUE_COOKIE
+path	target	nitrogen.yaml	AWK_VALUE_COOKIE

@@ -1,0 +1,6 @@
+- name: oxygen
+- type: ideal
+- mnemonic: O
+- contains: [O, proton]
+- neighbors: [hydrogen, carbon, nitrogen]
+- boundary: tetrahedron

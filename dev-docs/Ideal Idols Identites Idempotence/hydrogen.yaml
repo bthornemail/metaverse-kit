@@ -1,0 +1,6 @@
+- name: hydrogen
+- type: ideal
+- mnemonic: H
+- contains: [H, proton]
+- neighbors: [oxygen, carbon]
+- boundary: tetrahedron

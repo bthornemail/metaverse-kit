@@ -1,0 +1,24 @@
+hydrogen.yaml	name	hydrogen	AWK_STRING
+hydrogen.yaml	type	ideal	AWK_STRING
+hydrogen.yaml	mnemonic	H	AWK_SCALAR
+hydrogen.yaml	contains	[H, proton]	AWK_ARRAY
+hydrogen.yaml	neighbors	[oxygen, carbon]	AWK_ARRAY
+hydrogen.yaml	boundary	tetrahedron	AWK_STRING
+oxygen.yaml	name	oxygen	AWK_STRING
+oxygen.yaml	type	ideal	AWK_STRING
+oxygen.yaml	mnemonic	O	AWK_SCALAR
+oxygen.yaml	contains	[O, proton]	AWK_ARRAY
+oxygen.yaml	neighbors	[hydrogen, carbon, nitrogen]	AWK_ARRAY
+oxygen.yaml	boundary	tetrahedron	AWK_STRING
+carbon.yaml	name	carbon	AWK_STRING
+carbon.yaml	type	idol	AWK_STRING
+carbon.yaml	mnemonic	C	AWK_SCALAR
+carbon.yaml	contains	[C]	AWK_ARRAY
+carbon.yaml	neighbors	[hydrogen, oxygen, nitrogen]	AWK_ARRAY
+carbon.yaml	boundary	tetrahedron	AWK_STRING
+nitrogen.yaml	name	nitrogen	AWK_STRING
+nitrogen.yaml	type	idol	AWK_STRING
+nitrogen.yaml	mnemonic	N	AWK_SCALAR
+nitrogen.yaml	contains	[N]	AWK_ARRAY
+nitrogen.yaml	neighbors	[oxygen, carbon]	AWK_ARRAY
+nitrogen.yaml	boundary	tetrahedron	AWK_STRING
