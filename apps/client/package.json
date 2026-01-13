@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@metaverse-kit/ext32": "^0.0.1",
     "@metaverse-kit/protocol": "^0.0.1",
     "@metaverse-kit/shadow-canvas": "^0.0.1",
     "@react-three/fiber": "^8.15.12",

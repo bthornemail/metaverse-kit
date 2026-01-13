@@ -3,3 +3,4 @@
 
 export * from "./types.js";
 export * from "./validate.js";
+export type { ProposalEvent, AcceptProposalEvent } from "./types.js";

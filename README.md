@@ -1,6 +1,6 @@
 # Metaverse Starter Kit
 
-A distributed, local-first collaborative infinite canvas metaverse built on append-only event traces.
+A local-first, event-sourced metaverse toolkit with deterministic replay, multi-projection rendering, and a draw.io-class editor shell. It is built to scale from offline-first collaboration to federated worlds without collapsing authority.
 
 ## Overview
 
@@ -14,6 +14,7 @@ The Metaverse Starter Kit enables multi-user editing with deterministic replay, 
 - **Local-first**: Everything works offline and synchronizes opportunistically.
 - **Fail-fast scope**: Boundaries and authority are explicit and enforced early via dotfiles.
 - **Deterministic replay**: Replay must always converge to the same state.
+- **Meaning-first**: Roles and semantics drive appearance, not the other way around.
 
 ## Architecture
 
@@ -29,6 +30,37 @@ The Metaverse Starter Kit enables multi-user editing with deterministic replay, 
 Events (JSONL) → Validate (Scope + NF) → Store (TileStore) → Materialize (Shadow Canvas) → BASIS32 → Project (Views)
 ```
 
+### SPABBS / EXT32 (v0)
+
+- Layered blackboard boundaries (L0/L1/L2/L3)
+- Proposal + acceptance channel (non-authoritative EXT32)
+- EXT32 pack registry for federated feature packs
+
+## Capabilities (Current)
+
+### Editor (draw.io-class)
+- Palette + inspector panels for stencil-driven editing
+- Selection, multi-select, marquee, move/resize/rotate
+- Connectors with routing (orthogonal/straight/bezier)
+- Group/ungroup and relation editing
+- Timeline playhead with markers, keyframes, cuts, and FPS/EPS playback
+
+### Projections
+- 1D: event/narrative list
+- 2D: canvas with SVG/MP4/WAV references
+- 3D: GLB/OBJ/MTL projection + camera presets
+- Voxel: baseline voxel projection
+- Narrative mode + movie/camera observation mode
+
+### Export
+- Native bundle (events + snapshot + markers + packs)
+- SVG / PNG / MP4 exports with configurable size and bounds
+
+### Federation Primitives
+- BASIS32 deterministic features
+- EXT32 pack registry + proposal/acceptance channel
+- Discovery graph + UDP gossip
+
 ## Repository Structure
 
 ```
@@ -40,6 +72,7 @@ metaverse-kit/
 │   ├── shadow-canvas/ # State materializer
 │   ├── tilestore/     # Storage engine
 │   ├── basis32/       # Deterministic feature basis
+│   ├── ext32/         # EXT32 pack registry
 │   ├── discovery/     # Discovery graph
 │   └── ...
 ├── apps/
@@ -51,12 +84,24 @@ metaverse-kit/
 │   ├── mv-init/       # Create world
 │   ├── mv-host/       # Run server
 │   ├── mv-client/     # Open client
-│   └── mv-replay/     # Extract event ranges
+│   ├── mv-replay/     # Extract event ranges
+│   └── mv-ext32/      # Register EXT32 packs
 ├── world-format/      # Dotfiles (.ulp-root, .ulp-scope, .ulp-ignore)
 ├── examples/          # Demo worlds
 ├── dev-docs/          # Architecture documentation
 └── CLAUDE.md          # Development guide for Claude Code
 ```
+
+## Package Highlights
+
+- `@metaverse-kit/protocol`: event envelope types, validation, scope invariants
+- `@metaverse-kit/addr`: content addressing (RID/SID) + canonical JSON
+- `@metaverse-kit/nf`: normalization, deterministic ordering, equivalence helpers
+- `@metaverse-kit/shadow-canvas`: deterministic state materializer
+- `@metaverse-kit/tilestore`: segment/manifest/snapshot storage engine
+- `@metaverse-kit/basis32`: deterministic feature basis (derived)
+- `@metaverse-kit/ext32`: federated pack registry (proposal layer)
+- `@metaverse-kit/discovery`: discovery graph + UDP gossip
 
 ## Getting Started
 
@@ -103,16 +148,20 @@ Comprehensive architecture documentation is available in the `dev-docs/` directo
 
 ## Status
 
-**Current Phase:** Phase 4 - Client Application (v0 + partial v1)
+**Current Phase:** Phase 4/6 - Client + CLI + SPABBS/EXT32 foundation (v0 + partial v1)
 
 **Implementation Progress:**
 - ✅ Core protocol + NF + ADDR + TileStore + Shadow Canvas
 - ✅ Snapshots, SID pointers, UDP discovery gossip
 - ✅ Discovery Graph v1 + broker endpoints
-- ✅ 2D canvas + drawing tools + timeline scrubber
+- ✅ 2D canvas + draw.io-style editor shell (palette/inspector)
+- ✅ Selection/move/resize/rotate + connectors + routing
+- ✅ Timeline playhead + markers + keyframe/cut types
 - ✅ Presence cursors over WebSocket
-- ✅ 3D view (OBJ/MTL/GLB + MP4/WAV placeholders)
+- ✅ 3D view (OBJ/MTL/GLB + MP4/WAV placeholders) + camera presets
 - ✅ MCP Streamable HTTP server + client scaffold
+- ✅ EXT32 pack registry (server + client UI + CLI)
+- ✅ Proposal/acceptance event types + validators
 
 See the implementation plan for detailed roadmap.
 

@@ -87,6 +87,8 @@ export type Operation =
   | "delete_node"
   | "merge"
   | "derived_feature32"
+  | "proposal"        // SPABBS proposal channel
+  | "accept_proposal" // SPABBS acceptance gate
   | "set_geometry"     // v1
   | "set_media"        // v1
   | "set_text"         // v1
@@ -222,6 +224,22 @@ export interface DerivedFeature32Event extends EventEnvelope {
   packed128?: [string, string]; // two uint64 hex strings
 }
 
+// SPABBS proposal channel
+export interface ProposalEvent extends EventEnvelope {
+  operation: "proposal";
+  proposal_id: string;
+  layer: string; // e.g., "L2"
+  target: { node_id?: NodeId; tile?: TileId };
+  payload: Record<string, unknown>;
+}
+
+export interface AcceptProposalEvent extends EventEnvelope {
+  operation: "accept_proposal";
+  proposal_id: string;
+  accepted_by: string; // e.g., "authority:gate"
+  scope: "local" | "federated";
+}
+
 // ============================================================================
 // Union of all event types (for discriminated unions)
 // ============================================================================
@@ -241,6 +259,8 @@ export type WorldEvent =
   | SetPhysicsEvent
   | PhysicsStepEvent
   | DerivedFeature32Event
+  | ProposalEvent
+  | AcceptProposalEvent
   | (EventEnvelope & Record<string, unknown>); // Forward-compatible for macros
 
 // ============================================================================

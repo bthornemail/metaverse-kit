@@ -510,6 +510,45 @@ function validateDerivedFeature32(obj: Record<string, unknown>): void {
   }
 }
 
+function validateProposal(obj: Record<string, unknown>): void {
+  const problems: string[] = [];
+
+  if (!isString(obj["proposal_id"])) {
+    problems.push("proposal.proposal_id must be a string");
+  }
+  if (!isString(obj["layer"])) {
+    problems.push("proposal.layer must be a string");
+  }
+  if (!isObject(obj["target"])) {
+    problems.push("proposal.target must be an object");
+  }
+  if (!isObject(obj["payload"])) {
+    problems.push("proposal.payload must be an object");
+  }
+
+  if (problems.length > 0) {
+    throw new ValidationError(problems);
+  }
+}
+
+function validateAcceptProposal(obj: Record<string, unknown>): void {
+  const problems: string[] = [];
+
+  if (!isString(obj["proposal_id"])) {
+    problems.push("accept_proposal.proposal_id must be a string");
+  }
+  if (!isString(obj["accepted_by"])) {
+    problems.push("accept_proposal.accepted_by must be a string");
+  }
+  if (!isString(obj["scope"]) || !["local", "federated"].includes(obj["scope"] as string)) {
+    problems.push("accept_proposal.scope must be 'local' or 'federated'");
+  }
+
+  if (problems.length > 0) {
+    throw new ValidationError(problems);
+  }
+}
+
 // ============================================================================
 // Full World Event Validation
 // ============================================================================
@@ -554,6 +593,14 @@ export function validateWorldEvent(ev: unknown): WorldEvent {
 
       case "derived_feature32":
         validateDerivedFeature32(obj);
+        break;
+
+      case "proposal":
+        validateProposal(obj);
+        break;
+
+      case "accept_proposal":
+        validateAcceptProposal(obj);
         break;
 
       case "set_geometry":

@@ -18,7 +18,8 @@
     "mv-init": "node tools/mv-init/index.js",
     "mv-host": "node tools/mv-host/index.js",
     "mv-client": "node tools/mv-client/index.js",
-    "mv-replay": "node tools/mv-replay/index.js"
+    "mv-replay": "node tools/mv-replay/index.js",
+    "mv-ext32": "node tools/mv-ext32/index.js"
   },
   "devDependencies": {
     "typescript": "^5.3.3",

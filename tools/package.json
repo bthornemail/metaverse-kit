@@ -6,6 +6,7 @@
     "mv-init": "./mv-init/index.js",
     "mv-host": "./mv-host/index.js",
     "mv-client": "./mv-client/index.js",
-    "mv-replay": "./mv-replay/index.js"
+    "mv-replay": "./mv-replay/index.js",
+    "mv-ext32": "./mv-ext32/index.js"
   }
 }

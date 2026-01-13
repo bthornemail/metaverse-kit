@@ -10,6 +10,7 @@ import { validateWorldEvent } from "@metaverse-kit/protocol";
 import { normalizeEvent } from "@metaverse-kit/nf";
 import type { SpaceId, TileId, EventId, PresenceUpdate } from "@metaverse-kit/protocol";
 import { startDiscovery } from "./discovery.js";
+import { initExt32Registry, listExt32Packs, registerExt32Pack, validateExt32Pack } from "./ext32_registry.js";
 
 // ============================================================================
 // Configuration
@@ -32,6 +33,8 @@ const store = new TileStore({
   flushBytes: 256 * 1024, // 256 KB
   flushMs: 5000, // 5 seconds
 });
+
+initExt32Registry(WORLD_DIR);
 
 const { graph: discoveryGraph, udp: discoveryUdp } = startDiscovery({
   persistPath: path.join(WORLD_DIR, "discovery.json"),
@@ -160,6 +163,31 @@ const server = http.createServer(async (req, res) => {
       }
 
       return json(res, tip);
+    }
+
+    // ========================================================================
+    // GET /ext32/packs
+    // ========================================================================
+    if (pathname === "/ext32/packs" && req.method === "GET") {
+      return json(res, { packs: listExt32Packs() });
+    }
+
+    // ========================================================================
+    // POST /ext32/packs
+    // Body: { pack }
+    // ========================================================================
+    if (pathname === "/ext32/packs" && req.method === "POST") {
+      const body = await readBody(req);
+      const payload = JSON.parse(body) as { pack: unknown };
+      if (!payload.pack || typeof payload.pack !== "object") {
+        return error(res, "pack must be an object");
+      }
+      const problems = validateExt32Pack(payload.pack);
+      if (problems.length > 0) {
+        return error(res, `Invalid pack: ${problems.join("; ")}`);
+      }
+      registerExt32Pack(payload.pack as any);
+      return json(res, { ok: true });
     }
 
     // ========================================================================
@@ -395,6 +423,8 @@ server.listen(PORT, () => {
   console.log("\nAvailable endpoints:");
   console.log("  GET  /health");
   console.log("  GET  /tile_tip?space_id=...&tile_id=...");
+  console.log("  GET  /ext32/packs");
+  console.log("  POST /ext32/packs");
   console.log("  POST /segments_since");
   console.log("  GET  /object/:hash");
   console.log("  POST /append_events");

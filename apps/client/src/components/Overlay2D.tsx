@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { TileState, NodeState } from '@metaverse-kit/shadow-canvas';
 import { getLiveNodes } from '@metaverse-kit/shadow-canvas';
+import { resolveRef } from '../refs';
 
 interface Overlay2DProps {
   tileState: TileState;
@@ -26,7 +27,8 @@ export default function Overlay2D({ tileState, viewport }: Overlay2DProps) {
       if (node.text) {
         const ref = node.text.ref;
         if (isInlineText(ref)) continue;
-        const url = resolveRef(ref);
+        const url = resolveRef(ref, () => setTick((t) => t + 1));
+        if (!url) continue;
         if (contentCacheRef.current.has(url) || loadingRef.current.has(url)) continue;
         loadingRef.current.add(url);
         void fetch(url)
@@ -42,7 +44,8 @@ export default function Overlay2D({ tileState, viewport }: Overlay2DProps) {
         const ref = node.document.ref;
         if (node.document.kind === 'pdf') continue;
         if (isInlineText(ref)) continue;
-        const url = resolveRef(ref);
+        const url = resolveRef(ref, () => setTick((t) => t + 1));
+        if (!url) continue;
         if (contentCacheRef.current.has(url) || loadingRef.current.has(url)) continue;
         loadingRef.current.add(url);
         void fetch(url)
@@ -150,7 +153,8 @@ function TextBlock({
   cache: Map<string, string>;
 }) {
   const ref = node.text?.ref ?? '';
-  const inline = isInlineText(ref) ? ref : cache.get(resolveRef(ref)) ?? 'Loading...';
+  const url = resolveRef(ref);
+  const inline = isInlineText(ref) ? ref : url ? cache.get(url) ?? 'Loading...' : 'Loading...';
   const html = node.text?.kind === 'markdown' ? renderMarkdown(inline) : escapeHtml(inline);
 
   return (
@@ -194,6 +198,9 @@ function DocumentBlock({
   const doc = node.document!;
   const ref = doc.ref;
   const url = resolveRef(ref);
+  if (!url && !isInlineText(ref)) {
+    return null;
+  }
 
   if (doc.kind === 'pdf') {
     return (
@@ -219,7 +226,7 @@ function DocumentBlock({
   }
 
   if (doc.kind === 'html') {
-    const html = isInlineText(ref) ? ref : cache.get(url) ?? '';
+    const html = isInlineText(ref) ? ref : url ? cache.get(url) ?? '' : '';
     return (
       <iframe
         title={`doc-${node.node_id}`}
@@ -239,7 +246,7 @@ function DocumentBlock({
     );
   }
 
-  const content = isInlineText(ref) ? ref : cache.get(url) ?? 'Loading...';
+  const content = isInlineText(ref) ? ref : url ? cache.get(url) ?? 'Loading...' : 'Loading...';
   const html = doc.kind === 'md-page' ? renderMarkdown(content) : escapeHtml(content);
   return (
     <div
@@ -268,15 +275,9 @@ function worldToScreen(x: number, y: number, vp: { offsetX: number; offsetY: num
   return [x * vp.scale + vp.offsetX, y * vp.scale + vp.offsetY];
 }
 
-function resolveRef(ref: string): string {
-  if (ref.startsWith('sha256:') || ref.startsWith('blake3:')) {
-    return `/object/${encodeURIComponent(ref)}`;
-  }
-  return ref;
-}
-
 function isInlineText(ref: string): boolean {
   if (ref.startsWith('sha256:') || ref.startsWith('blake3:')) return false;
+  if (ref.startsWith('local:')) return false;
   if (ref.startsWith('http://') || ref.startsWith('https://')) return false;
   return true;
 }

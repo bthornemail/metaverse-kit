@@ -1,0 +1,163 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EXT32 Pack Schema",
+  "type": "object",
+  "required": ["pack_id", "namespace", "version", "features"],
+  "properties": {
+    "pack_id": { "type": "string" },
+    "namespace": { "type": "string" },
+    "version": { "type": "string" },
+    "description": { "type": "string" },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type"],
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "type": "string", "enum": ["enum", "float", "int", "bool", "string"] },
+          "values": { "type": "array", "items": { "type": "string" } },
+          "range": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      }
+    },
+    "projections": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "authority": { "type": "string", "enum": ["proposal"] },
+    "assets": {
+      "type": "object",
+      "properties": {
+        "default": { "$ref": "#/definitions/assets" },
+        "roles": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/assets" }
+        }
+      }
+    },
+    "interactions": {
+      "oneOf": [
+        { "type": "array", "items": { "$ref": "#/definitions/interaction" } },
+        { "type": "object", "additionalProperties": { "$ref": "#/definitions/interactionActionList" } }
+      ]
+    },
+    "schema": { "type": "object" }
+  },
+  "definitions": {
+    "assets": {
+      "type": "object",
+      "properties": {
+        "svg": { "type": "string" },
+        "glb": { "type": "string" },
+        "obj": { "type": "string" },
+        "mtl": { "type": "string" },
+        "wav": { "type": "string" },
+        "mp4": { "type": "string" },
+        "voxel": { "type": "string" }
+      }
+    },
+    "interactionActionList": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/interactionAction" }
+    },
+    "interaction": {
+      "type": "object",
+      "required": ["trigger", "actions"],
+      "properties": {
+        "name": { "type": "string" },
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "click",
+            "hover_start",
+            "hover_end",
+            "drag_start",
+            "drag_move",
+            "drag_end",
+            "key_down",
+            "key_up",
+            "timeline_enter",
+            "timeline_exit"
+          ]
+        },
+        "conditions": { "type": "array", "items": { "type": "string" } },
+        "range": {
+          "type": "object",
+          "required": ["start", "end"],
+          "properties": {
+            "start": { "type": "number" },
+            "end": { "type": "number" },
+            "unit": { "type": "string", "enum": ["pct", "ms"] }
+          }
+        },
+        "key": { "type": "string" },
+        "actions": { "$ref": "#/definitions/interactionActionList" }
+      }
+    },
+    "interactionAction": {
+      "type": "object",
+      "required": ["operation"],
+      "properties": {
+        "operation": {
+          "type": "string",
+          "enum": [
+            "set_properties",
+            "merge_properties",
+            "toggle_property",
+            "increment_property",
+            "push_array",
+            "remove_array_item",
+            "set_geometry",
+            "set_media",
+            "set_transform",
+            "translate",
+            "rotate",
+            "scale",
+            "create_node",
+            "delete_node",
+            "link_nodes",
+            "unlink_nodes",
+            "set_keyframe",
+            "play_animation",
+            "stop_animation",
+            "scrub_timeline",
+            "play_media",
+            "pause_media",
+            "stop_media",
+            "set_volume",
+            "emit_event",
+            "if"
+          ]
+        },
+        "properties": { "type": "object" },
+        "path": { "type": "string" },
+        "value": {},
+        "geometry": { "type": "object" },
+        "media": { "type": "object" },
+        "transform": { "type": "object" },
+        "delta": { "type": "object" },
+        "rotation": { "type": "object" },
+        "scale": { "type": "object" },
+        "node": { "type": "object" },
+        "target": { "type": ["string", "null"] },
+        "link": { "type": "object" },
+        "keyframe": { "type": "object" },
+        "name": { "type": "string" },
+        "time": { "type": "number" },
+        "ref": { "type": "string" },
+        "volume": { "type": "number" },
+        "event": { "type": "object" },
+        "condition": { "type": "string" },
+        "then": { "$ref": "#/definitions/interactionActionList" },
+        "else": { "$ref": "#/definitions/interactionActionList" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

@@ -313,6 +313,33 @@ Convert TileState to 2D render primitives. Can be inline in client for MVP.
 
 ---
 
+### Phase 6.5: SPABBS / EXT32 Foundation (Days 41-45)
+
+#### 6.5.1 Layer Boundaries (v0)
+
+- Declare L0/L1/L2/L3 boundaries (authoritative, derived, proposal, projection)
+- Add blackboard I/O staging rules
+- Document enforcement points
+
+#### 6.5.2 Proposal Channel
+
+- Add `proposal` and `accept_proposal` event types (protocol)
+- Enforce acceptance gate (higher authority only)
+- Trace proposals and acceptances
+
+#### 6.5.3 EXT32 Pack Registry
+
+- Implement minimal pack registry schema
+- Track installed packs by namespace/version
+- Allow EXT32 proposals to reference packs
+
+#### 6.5.4 Projection Integration
+
+- Projectors consult BASIS32 + EXT32 (if available)
+- EXT32 refines appearance, never authority
+
+---
+
 ### Phase 6: CLI Tools (Days 41-45)
 
 **Status:** Implemented (mv-init, mv-host, mv-client, mv-replay)

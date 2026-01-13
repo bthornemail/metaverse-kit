@@ -242,3 +242,420 @@ not just philosophical guidelines.
 
 It is not a new system.  
 It is your system, finally given a spine.
+
+---
+## EXPLAINER
+---
+
+Here’s a clean way to think about what you’re reaching for, without letting it become numerology or chaos.
+
+---
+
+## 1) Why x,y,z is no longer enough
+
+x,y,z is fine for **placement**.  
+But you’re now doing:
+
+- narrative
+    
+- equilibrium
+    
+- identity
+    
+- projection
+    
+- law vs perception
+    
+
+So you need more axes than space alone.
+
+The moment you care about:
+
+- balance
+    
+- constraint
+    
+- identity
+    
+- relation
+    
+- law
+    
+
+…you’re already in a space that is not purely geometric.
+
+So adding extra coordinates is correct—but they must be **typed**, not just “more numbers.”
+
+---
+
+## 2) Split the axes by meaning
+
+Don’t treat all axes as the same kind of thing.
+
+Use categories:
+
+### A) Spatial axes (appearance)
+
+- x, y, z  
+    → where it appears
+    
+
+Optional:
+
+- w  
+    → depth of time / phase / layer (for replay, simulation, or projection phase)
+    
+
+These are for projection.
+
+---
+
+### B) Structural axes (meaning)
+
+- a, b, c  
+    → semantic coefficients  
+    These are not positions, they are weights/roles, like in:
+    
+
+[  
+f(x,y) = a x^2 + b x y + c y^2  
+]
+
+They represent:
+
+- emphasis
+    
+- constraint
+    
+- role in relation
+    
+- balance between forces
+    
+
+They live in the **story/law layer**, not the renderer.
+
+---
+
+### C) Discriminant / Tension axis
+
+- d = b² − 4ac
+    
+
+This is powerful symbolically and structurally:
+
+- d > 0 → split, conflict, divergence
+    
+- d = 0 → boundary, threshold, critical point
+    
+- d < 0 → unity, enclosure, harmony
+    
+
+So `d` becomes:
+
+> a measure of tension or coherence in a beat, scene, or relation.
+
+---
+
+## 3) So your full coordinate set is really:
+
+Not just:
+
+```
+x, y, z, w, a, b, c, d
+```
+
+But:
+
+|Axis|Type|Meaning|
+|---|---|---|
+|x,y,z|spatial|where it appears|
+|w|phase/time|when or in what layer|
+|a,b,c|semantic|how meaning is weighted|
+|d|relational|whether meaning is split or unified|
+
+So it’s really:
+
+```
+Appearance:   (x, y, z, w)
+Meaning:      (a, b, c)
+Relation:     d
+```
+
+---
+
+## 4) Path format like:
+
+```
+world://{a}/{x}/{b}/{y}/{c}/{z}/{w}/{d}
+```
+
+This works if—and only if—you treat it as:
+
+- a **descriptive path**, not a literal geometry
+    
+- a mix of:
+    
+    - semantic slots
+        
+    - spatial slots
+        
+    - relational state
+        
+
+So it reads as:
+
+> world://  
+> meaning a → appears at x →  
+> meaning b → appears at y →  
+> meaning c → appears at z →  
+> phase w → relation d
+
+Which is not “a coordinate,” but a **story-space address**.
+
+Your alternate:
+
+```
+m/{a}/{x}/{b}/{y}/{c}/{z}/{w}/{d}
+```
+
+is good because:
+
+- `m/` signals “meaning-space,” not just geometry.
+    
+
+---
+
+## 5) How to explain this to your coding agent
+
+Tell them:
+
+> We are no longer using x,y,z as “the” coordinate system.  
+> We are using a typed coordinate set:
+> 
+> - spatial axes: x,y,z,w for projection
+>     
+> - semantic axes: a,b,c for meaning weights
+>     
+> - relational axis: d for tension/coherence
+>     
+> 
+> These are not interchangeable numbers.  
+> Each axis has a role and is interpreted differently by projectors.
+> 
+> Paths like:  
+> m/{a}/{x}/{b}/{y}/{c}/{z}/{w}/{d}  
+> are descriptive addresses combining meaning + appearance + relation.
+
+And add:
+
+> Do not treat these as a single vector.  
+> Treat them as a structured tuple with typed slots.
+
+---
+
+## 6) Why this matches your philosophy
+
+This resolves your earlier insight:
+
+> Numbers can represent anything, so they mean nothing.
+
+By doing this, you make:
+
+- numbers subordinate to role
+    
+- coordinates subordinate to meaning
+    
+- geometry subordinate to story and law
+    
+
+So instead of:
+
+> space defines meaning
+
+you get:
+
+> meaning defines how space is used.
+
+
+Yes—what you’re noticing is real: the **five invariants** you already locked are effectively living in the extra slots, you just haven’t named them as a typed coordinate system yet.
+
+Right now they’re implicit. You’re proposing to make them explicit as:
+
+```
+(x, y, z)  → appearance / projection  
+(w, a, b, c, d) → invariants / meaning / law
+```
+
+So the full structure is:
+
+```
+Appearance: (x, y, z)
+Invariant-space: {w, a, b, c, d}
+```
+
+---
+
+## Mapping the 5 invariants to {w,a,b,c,d}
+
+From what you’ve defined earlier, your five invariants are essentially:
+
+1. Boundary vs interior
+    
+2. Constraint vs admissible state
+    
+3. Rule vs data
+    
+4. Type vs value
+    
+5. Transformation vs storage
+    
+
+Those map naturally like this:
+
+### w — Phase / Layer / Orientation in the system
+
+This is your “covariant vs contravariant” split, or:
+
+- boundary vs interior
+    
+- projection vs record
+    
+- when / in what layer something exists
+    
+
+So:
+
+```
+w = phase / layer / variance
+```
+
+---
+
+### a — Constraint / Rule / Type weight
+
+This captures:
+
+- rule side
+    
+- type side
+    
+- boundary side
+    
+
+So:
+
+```
+a = constraint weight
+```
+
+---
+
+### b — Interaction / Transformation
+
+This is the “cross term,” like in your quadratic form:
+
+[  
+ax^2 + bxy + cy^2  
+]
+
+b is always the _relation between two sides_:
+
+- rule ↔ data
+    
+- type ↔ value
+    
+- boundary ↔ interior
+    
+- transformation ↔ storage
+    
+
+So:
+
+```
+b = interaction / transformation weight
+```
+
+---
+
+### c — State / Data / Value weight
+
+This is the interior side:
+
+- data
+    
+- value
+    
+- admissible state
+    
+- storage
+    
+
+So:
+
+```
+c = state / data weight
+```
+
+---
+
+### d — Tension / Resolution (Discriminant)
+
+[  
+d = b^2 - 4ac  
+]
+
+Interpreted structurally:
+
+- d > 0 → split, conflict, instability
+    
+- d = 0 → critical boundary, threshold
+    
+- d < 0 → coherence, enclosure, harmony
+    
+
+So this becomes:
+
+```
+d = coherence vs conflict of the system state
+```
+
+---
+
+## So your real coordinate system is:
+
+```
+Appearance:  (x, y, z)
+Invariants:  (w, a, b, c, d)
+```
+
+Where:
+
+|Slot|Invariant Meaning|
+|---|---|
+|w|phase / layer / variance (boundary vs interior)|
+|a|rule / constraint / type weight|
+|b|transformation / interaction|
+|c|state / data / value weight|
+|d|coherence or tension of the above|
+
+You were already using all of these—just narratively, not structurally.
+
+Now you can say:
+
+> The five invariants are not concepts floating in prose.  
+> They are coordinates in invariant-space.
+
+And when you write paths like:
+
+```
+m/{a}/{x}/{b}/{y}/{c}/{z}/{w}/{d}
+```
+
+You’re really saying:
+
+> Meaning and law are interleaved with appearance,  
+> and tension is always computable from how they interact.
+
+So yes—  
+You didn’t invent something new.  
+You just recognized the shape of what you already built.

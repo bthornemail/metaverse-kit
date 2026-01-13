@@ -24,31 +24,45 @@ const ROLE_COLORS: Record<string, string> = {
   voice: '#64b5f6',
 };
 
+export type NarrativeOverride = {
+  roles?: string[];
+  actions?: string[];
+  intensity?: number;
+};
+
 export function narrativeFrame(
   beats: NarrativeBeat[],
-  t: number
+  t: number,
+  override?: NarrativeOverride
 ): NarrativeFrame {
   const clamped = Math.max(0, Math.min(1, t));
   const index = Math.min(beats.length - 1, Math.floor(clamped * beats.length));
   const progress = clamped * beats.length - index;
   const beat = beats[index];
-  const state = buildNarrativeState(beat, progress);
+  const state = buildNarrativeState(beat, progress, override);
   return { beat, index, progress, state };
 }
 
-function buildNarrativeState(beat: NarrativeBeat, progress: number): TileState {
+function buildNarrativeState(
+  beat: NarrativeBeat,
+  progress: number,
+  override?: NarrativeOverride
+): TileState {
   const nodes = new Map<string, NodeState>();
   const radius = 80;
   const centerX = 0;
   const centerY = 0;
 
-  beat.roles.forEach((role, idx) => {
-    const angle = (idx / beat.roles.length) * Math.PI * 2;
+  const roles = override?.roles?.length ? override.roles : beat.roles;
+  const actions = override?.actions?.length ? override.actions : beat.actions ?? ["spawn", "highlight"];
+  const intensity = override?.intensity ?? progress;
+
+  roles.forEach((role, idx) => {
+    const angle = (idx / roles.length) * Math.PI * 2;
     const x = centerX + Math.cos(angle) * radius;
     const y = centerY + Math.sin(angle) * radius;
     const color = ROLE_COLORS[role] ?? '#88a0ff';
 
-    const actions = beat.actions ?? ["spawn", "highlight"];
     nodes.set(`role:${role}`, {
       node_id: `role:${role}`,
       kind: "narrative.role",
@@ -62,7 +76,7 @@ function buildNarrativeState(beat: NarrativeBeat, progress: number): TileState {
         color,
         narrative: {
           actions,
-          intensity: progress,
+          intensity,
           offset: [0, 0, 0],
         },
       },

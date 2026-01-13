@@ -1,0 +1,8 @@
+{
+  "name": "@metaverse-kit/mv-ext32",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mv-ext32": "./index.js"
+  }
+}

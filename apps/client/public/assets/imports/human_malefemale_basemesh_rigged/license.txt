@@ -1,0 +1,11 @@
+Model Information:
+* title:	Human Male/Female Basemesh Rigged
+* source:	https://sketchfab.com/3d-models/human-malefemale-basemesh-rigged-96fa14a5a3f0413e98b605e3f65e447c
+* author:	Niclas (https://sketchfab.com/niclas.schoepe)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Human Male/Female Basemesh Rigged" (https://sketchfab.com/3d-models/human-malefemale-basemesh-rigged-96fa14a5a3f0413e98b605e3f65e447c) by Niclas (https://sketchfab.com/niclas.schoepe) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
