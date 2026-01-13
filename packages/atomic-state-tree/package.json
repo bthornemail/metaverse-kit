@@ -1,0 +1,33 @@
+{
+  "name": "@metaverse-kit/projector-state256",
+  "version": "0.1.0",
+  "description": "Hardware-accelerated projector using State256 VM for symbolic-to-numeric projection",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test",
+    "bench": "node --test benchmarks/*.bench.js"
+  },
+  "keywords": [
+    "projector",
+    "state256",
+    "simd",
+    "hardware-accelerated",
+    "symbolic",
+    "geometric"
+  ],
+  "dependencies": {
+    "@metaverse-kit/protocol": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

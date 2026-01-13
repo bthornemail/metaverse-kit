@@ -1,0 +1,14 @@
+# Merkle-style hash propagation example
+# Simulates content-addressable storage
+
+# Set leaf with content hash
+SET State.FrameA.Local.Block1.Record1.Closure1.Logic1.Relation1.L CID:bafy2bzaceabc123
+SET State.FrameA.Local.Block1.Record1.Closure1.Logic1.Relation1.R SIG:0xdeadbeef
+
+# Set additional atoms for building tree
+SET State.FrameA.Local.Block1.Record1.Closure1.Logic1.Relation2.L CID:bafy2bzaceadef456
+SET State.FrameA.Local.Block1.Record1.Closure1.Logic1.Relation2.R SIG:0xcafebabe
+
+# Get the values
+GET State.FrameA.Local.Block1.Record1.Closure1.Logic1.Relation1.L
+GET State.FrameA.Local.Block1.Record1.Closure1.Logic1.Relation1.R
