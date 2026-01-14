@@ -284,12 +284,14 @@ export interface Index {
   tip_segment: HashRef;
   last_snapshot?: HashRef;
   snapshot_event?: EventId;
+  state256_root?: string;
   updated_at: number; // timestamp
 }
 
 export interface Snapshot {
   tile_id: TileId;
   at_event: EventId;
+  state256_root?: string;
   nodes: Array<{
     node_id: NodeId;
     kind: string;
@@ -320,6 +322,7 @@ export interface GetTileTipResponse {
   tip_segment: HashRef;
   last_snapshot?: HashRef;
   snapshot_event?: EventId;
+  state256_root?: string;
 }
 
 export interface GetSegmentsSinceRequest {

@@ -11,6 +11,7 @@
  */
 
 import { NodeId } from "@metaverse-kit/protocol";
+import type { WasmSimdBackend } from "../wasm/simd-backend.js";
 
 // ============================================================================
 // Architecture Detection
@@ -174,11 +175,13 @@ export class RegisterFile {
   private readonly arch: ArchitectureInfo;
   private readonly data: Float32Array;
   private readonly atomMap: Map<NodeId, number>; // NodeId → register slot
+  private wasmBackend?: WasmSimdBackend;
 
-  constructor(arch?: ArchitectureInfo) {
+  constructor(arch?: ArchitectureInfo, wasmBackend?: WasmSimdBackend) {
     this.arch = arch || detectArchitecture();
     this.data = new Float32Array(this.arch.maxAtoms);
     this.atomMap = new Map();
+    this.wasmBackend = wasmBackend;
   }
 
   // ========================================================================
@@ -401,6 +404,10 @@ export class RegisterFile {
    * Uses SIMD-optimized hashing where available
    */
   hash(): number {
+    if (this.wasmBackend) {
+      return this.wasmBackend.hash(this.data);
+    }
+
     let h = 0x811c9dc5; // FNV-1a offset basis
 
     for (let i = 0; i < this.arch.maxAtoms; i++) {
@@ -445,8 +452,12 @@ export class RegisterFile {
     this.atomMap.clear();
   }
 
+  setWasmBackend(backend: WasmSimdBackend | undefined): void {
+    this.wasmBackend = backend;
+  }
+
   clone(): RegisterFile {
-    const clone = new RegisterFile(this.arch);
+    const clone = new RegisterFile(this.arch, this.wasmBackend);
     clone.data.set(this.data);
     for (const [nodeId, slot] of this.atomMap.entries()) {
       clone.atomMap.set(nodeId, slot);

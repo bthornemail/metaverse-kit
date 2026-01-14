@@ -196,6 +196,35 @@ This will test:
 4. Tree building with different atom counts
 5. Python VM functionality
 
+## Integration Notes
+
+### Canonical Slot Mapping
+
+State256 uses a strict canonical path → slot formula:
+
+```
+State.<Frame>.<Context>.<Block>.<Record>.<Closure>.<Logic>.<Relation>.<Atom>
+```
+
+Each component is binary except `Context` (4 values). Slot index is computed in
+hierarchical order to produce a stable 0-255 mapping.
+
+### Mapping Nodes to Slots
+
+Slot mapping is derived from `node_id` only. If `node_id` starts with `State.`
+it is treated as the canonical path and mapped deterministically to 0-255.
+
+### Projection Output
+
+Use `buildState256Projection()` to get:
+- deterministic `root` hash
+- ordered `positions` stream (NodeId + Vec3 + slot)
+
+### WASM SIMD Backend
+
+`loadWasmSimdBackend()` can load a SIMD-accelerated hash kernel for x64. The
+`RegisterFile` will use it when set via the constructor or `setWasmBackend()`.
+
 ## Examples
 
 ### Example 1: Simple State Management

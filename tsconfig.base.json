@@ -27,7 +27,9 @@
       "@metaverse-kit/tilestore": ["./packages/tilestore/src"],
       "@metaverse-kit/scope": ["./packages/scope/src"],
       "@metaverse-kit/projector-2d": ["./packages/projector-2d/src"],
-      "@metaverse-kit/projector-3d": ["./packages/projector-3d/src"]
+      "@metaverse-kit/projector-3d": ["./packages/projector-3d/src"],
+      "@metaverse-kit/state256": ["./packages/state256/src"],
+      "@metaverse-kit/state256/*": ["./packages/state256/src/*"]
     }
   },
   "exclude": ["node_modules", "dist"]

@@ -7,7 +7,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "echo \"Tests coming soon\"",
+    "test": "tsx --test",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -32,7 +32,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@metaverse-kit/protocol": "^0.0.1"
+    "@metaverse-kit/protocol": "^0.0.1",
+    "@metaverse-kit/state256": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.3.3"

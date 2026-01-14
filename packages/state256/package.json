@@ -1,5 +1,5 @@
 {
-  "name": "@metaverse-kit/projector-state256",
+  "name": "@metaverse-kit/state256",
   "version": "0.1.0",
   "description": "Hardware-accelerated projector using State256 VM for symbolic-to-numeric projection",
   "type": "module",
@@ -9,10 +9,17 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./cli": {
+      "import": "./dist/cli.js"
     }
+  },
+  "bin": {
+    "state256-vm": "./dist/cli.js"
   },
   "scripts": {
     "build": "tsc",
+    "build:wasm": "bash scripts/build-wasm-hash.sh",
     "test": "node --test",
     "bench": "node --test benchmarks/*.bench.js"
   },

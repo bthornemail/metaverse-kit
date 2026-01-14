@@ -308,6 +308,11 @@ export class TileStore {
     if (index) {
       index.last_snapshot = hash;
       index.snapshot_event = snapshot.at_event;
+      if (snapshot.state256_root) {
+        index.state256_root = snapshot.state256_root;
+      } else {
+        delete index.state256_root;
+      }
       await this.writeIndex(space, tile, index);
     }
 
@@ -379,6 +384,11 @@ export class TileStore {
     const idx = JSON.parse(await fs.readFile(indexPath, "utf8"));
     idx.last_snapshot = snapHash;
     idx.snapshot_event = snap.at_event;
+    if (snap.state256_root) {
+      idx.state256_root = snap.state256_root;
+    } else {
+      delete idx.state256_root;
+    }
     idx.updated_at = Date.now();
     await fs.writeFile(indexPath, stableStringify(idx), "utf8");
 
@@ -488,3 +498,8 @@ export { MVPSnapshotter } from "./mvp_snapshotter.js";
 export { writePointer } from "./pointers.js";
 export { UdpDiscovery } from "./discovery_udp.js";
 export type { Snapshotter } from "./snapshot.js";
+export {
+  tilestoreSnapshotProjection,
+  muxSnapshotToState256,
+  demuxSnapshotFromState256,
+} from "./state256-projection.js";

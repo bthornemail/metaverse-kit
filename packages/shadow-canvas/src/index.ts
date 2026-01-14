@@ -21,6 +21,16 @@ import type {
   SetTextEvent,
   SetDocumentEvent,
 } from "@metaverse-kit/protocol";
+import {
+  buildState256Projection,
+  type State256Projection,
+  type State256ProjectionOptions,
+} from "@metaverse-kit/state256";
+export {
+  shadowCanvasProjection,
+  muxTileStateToState256,
+  demuxTileStateFromState256,
+} from "./state256-projection.js";
 
 // ============================================================================
 // State Types
@@ -155,6 +165,17 @@ export function applyEvent(state: TileState, ev: WorldEvent): void {
       }
       break;
   }
+}
+
+// ============================================================================
+// State256 Projection (Optional)
+// ============================================================================
+
+export function projectState256FromTileState(
+  state: TileState,
+  options?: State256ProjectionOptions
+): State256Projection {
+  return buildState256Projection(Array.from(state.nodes.values()), options);
 }
 
 // Operation-specific handlers

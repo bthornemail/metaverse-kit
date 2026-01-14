@@ -1,0 +1,28 @@
+(module
+  (memory (export "memory") 1)
+  (func $hash (param $ptr i32) (param $len i32) (result i32)
+    (local $i i32)
+    (local $h i32)
+    (local $byte i32)
+    (local.set $h (i32.const 2166136261))
+    (local.set $i (i32.const 0))
+    (block $break
+      (loop $loop
+        (br_if $break (i32.ge_u (local.get $i) (local.get $len)))
+        (local.set $byte
+          (i32.load8_u (i32.add (local.get $ptr) (local.get $i))))
+        (local.set $h (i32.xor (local.get $h) (local.get $byte)))
+        (local.set $h (i32.mul (local.get $h) (i32.const 16777619)))
+        (local.set $i (i32.add (local.get $i) (i32.const 1)))
+        (br $loop)
+      )
+    )
+    (local.get $h)
+  )
+  (func (export "hash") (param $ptr i32) (param $len i32) (result i32)
+    (call $hash (local.get $ptr) (local.get $len))
+  )
+  (func (export "hash_simd") (param $ptr i32) (param $len i32) (result i32)
+    (call $hash (local.get $ptr) (local.get $len))
+  )
+)

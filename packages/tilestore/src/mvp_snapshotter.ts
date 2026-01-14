@@ -1,4 +1,5 @@
 import type { Snapshot } from "@metaverse-kit/protocol";
+import { computeState256Root } from "@metaverse-kit/state256";
 import type { Snapshotter } from "./snapshot.js";
 
 export const MVPSnapshotter: Snapshotter = {
@@ -58,10 +59,14 @@ export const MVPSnapshotter: Snapshotter = {
       }
     }
 
+    const nodes = Array.from(state.values());
+    const state256_root = computeState256Root(nodes, { includeDeleted: false });
+
     return {
       tile_id,
       at_event,
-      nodes: Array.from(state.values()),
+      state256_root,
+      nodes,
     } satisfies Snapshot;
   },
 };
