@@ -1,0 +1,8 @@
+{
+  "name": "@metaverse-kit/mv-proposal-bundle",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mv-proposal-bundle": "./index.js"
+  }
+}

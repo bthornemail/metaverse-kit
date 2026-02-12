@@ -1,0 +1,8 @@
+{
+  "name": "@metaverse-kit/mv-pack-demo",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mv-pack-demo": "./index.js"
+  }
+}

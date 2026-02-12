@@ -1,0 +1,21 @@
+# Keep Docker context minimal and deterministic for release envelope.
+.git
+.github
+node_modules
+apps
+packages
+tools
+world
+dev-docs
+examples
+*.log
+
+# Include only release dist payload and minimal docs/scripts.
+!dist/
+!dist/metaverse-kit-v0.1/**
+!RELEASE_NOTES.md
+!README.md
+!QUICKSTART.md
+!docs/**
+!scripts/**
+!Dockerfile

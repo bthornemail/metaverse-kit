@@ -1,0 +1,54 @@
+name: Portal Contract Guard
+
+on:
+  pull_request:
+    paths:
+      - 'docs/index.md'
+      - 'docs/portal-contract.md'
+      - 'docs/tools/portal-contract-guard.md'
+      - 'portal/**'
+      - 'tools/mv-pack-demo/**'
+      - 'tools/mv-proposal-bundle/**'
+      - 'tools/mv-verify-demo/**'
+      - 'scripts/demo-portal-eval.sh'
+      - 'scripts/portal-contract-guard.sh'
+      - 'package.json'
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/index.md'
+      - 'docs/portal-contract.md'
+      - 'docs/tools/portal-contract-guard.md'
+      - 'portal/**'
+      - 'tools/mv-pack-demo/**'
+      - 'tools/mv-proposal-bundle/**'
+      - 'tools/mv-verify-demo/**'
+      - 'scripts/demo-portal-eval.sh'
+      - 'scripts/portal-contract-guard.sh'
+      - 'package.json'
+
+jobs:
+  portal-contract-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run portal contract guard
+        env:
+          PORTAL_GUARD_BASE_REF: origin/${{ github.base_ref }}
+        run: npm run -s check:portal-contract
+
+      - name: Run deterministic demo evaluation
+        run: bash scripts/demo-portal-eval.sh

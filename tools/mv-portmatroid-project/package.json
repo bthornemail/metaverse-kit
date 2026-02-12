@@ -1,0 +1,9 @@
+{
+  "name": "@metaverse-kit/mv-portmatroid-project",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mv-portmatroid-project": "./index.js"
+  }
+}
+

@@ -1,0 +1,61 @@
+name: docker-release-smoke
+
+on:
+  pull_request:
+    paths:
+      - "Dockerfile"
+      - ".dockerignore"
+      - "scripts/release-docker.sh"
+      - "scripts/release-docker-smoke.sh"
+      - "scripts/release-pack.sh"
+      - "portal/**"
+      - "tools/**"
+      - "docs/DOCKER_RELEASE.md"
+      - "package.json"
+      - "package-lock.json"
+  push:
+    branches:
+      - main
+    paths:
+      - "Dockerfile"
+      - ".dockerignore"
+      - "scripts/release-docker.sh"
+      - "scripts/release-docker-smoke.sh"
+      - "scripts/release-pack.sh"
+      - "portal/**"
+      - "tools/**"
+      - "docs/DOCKER_RELEASE.md"
+      - "package.json"
+      - "package-lock.json"
+
+jobs:
+  docker-smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build canonical release
+        run: npm run -s release:pack
+
+      - name: Verify canonical release
+        run: npm run -s release:verify
+
+      - name: Build Docker image
+        run: npm run -s release:docker
+
+      - name: Docker smoke test
+        run: npm run -s release:docker-smoke
+
+      - name: Assert docker digest artifact exists
+        run: |
+          test -f dist/metaverse-kit-v0.1/docker-image.txt

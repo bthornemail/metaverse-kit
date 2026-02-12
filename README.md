@@ -51,6 +51,7 @@ Events (JSONL) → Validate (Scope + NF) → Store (TileStore) → Materialize (
 - 3D: GLB/OBJ/MTL projection + camera presets
 - Voxel: baseline voxel projection
 - Narrative mode + movie/camera observation mode
+- Demo portal proposal export (advisory `wave16.proposal_bundle.v0`, no canonical mutation)
 
 ### Export
 - Native bundle (events + snapshot + markers + packs)
@@ -85,7 +86,11 @@ metaverse-kit/
 │   ├── mv-host/       # Run server
 │   ├── mv-client/     # Open client
 │   ├── mv-replay/     # Extract event ranges
-│   └── mv-ext32/      # Register EXT32 packs
+│   ├── mv-ext32/      # Register EXT32 packs
+│   ├── mv-pack-demo/  # Build deterministic demo.bundle
+│   ├── mv-proposal-bundle/ # Build/validate proposal-only bundles
+│   └── mv-verify-demo/ # Verify demo.bundle integrity fail-closed
+├── portal/            # Static replay-only demo portal viewer
 ├── world-format/      # Dotfiles (.ulp-root, .ulp-scope, .ulp-ignore)
 ├── examples/          # Demo worlds
 ├── dev-docs/          # Architecture documentation
@@ -128,6 +133,46 @@ npm run mv-client
 ```
 
 See `QUICKSTART.md` for full setup and usage.
+
+## Deterministic World Demo (v0.1)
+
+This repository ships a protocol/runtime/demo release surface:
+
+- Runtime toolchain (builders)
+- `demo.bundle` (portable deterministic world artifact)
+- Static portal viewer (verify + replay + proposal export)
+
+Build and verify release artifacts:
+
+```bash
+npm run release:pack
+npm run release:verify
+```
+
+Outputs:
+
+- `dist/metaverse-kit-v0.1/demo.bundle/`
+- `dist/metaverse-kit-v0.1/portal/`
+- `dist/metaverse-kit-v0.1/checksums.txt`
+- `dist/metaverse-kit-v0.1/RELEASE_NOTES.md`
+
+Core docs:
+
+- `docs/ARCHITECTURE.md`
+- `docs/GOVERNANCE.md`
+- `docs/THREAT_MODEL.md`
+- `docs/KEY_ROTATION.md`
+- `docs/COMPATIBILITY.md`
+- `docs/RFC_PROCESS.md`
+- `docs/DOCKER_RELEASE.md`
+- `docs/SBOM_AND_PROVENANCE.md`
+- `docs/PUBLIC_RELEASE_PLAN.md`
+- `docs/REPRODUCIBLE_BUILD.md`
+- `docs/INCIDENT_RESPONSE.md`
+- `docs/portal-contract.md`
+- `docs/SIGNED_RELEASES.md`
+- `SECURITY.md`
+- `RELEASE_NOTES.md`
 
 ## Development
 

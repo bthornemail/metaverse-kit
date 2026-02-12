@@ -1,0 +1,63 @@
+name: Release Pack Reproducibility
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/release-pack.sh'
+      - 'scripts/verify-release.sh'
+      - 'tools/mv-pack-demo/**'
+      - 'tools/mv-verify-demo/**'
+      - 'portal/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'RELEASE_NOTES.md'
+  push:
+    branches:
+      - main
+    paths:
+      - 'scripts/release-pack.sh'
+      - 'scripts/verify-release.sh'
+      - 'tools/mv-pack-demo/**'
+      - 'tools/mv-verify-demo/**'
+      - 'portal/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'RELEASE_NOTES.md'
+
+jobs:
+  release-pack-repro:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build release pack A
+        env:
+          RELEASE_DIST_DIR: dist/repro-a
+        run: bash scripts/release-pack.sh
+
+      - name: Build release pack B
+        env:
+          RELEASE_DIST_DIR: dist/repro-b
+        run: bash scripts/release-pack.sh
+
+      - name: Verify both release packs
+        run: |
+          bash scripts/verify-release.sh --dist dist/repro-a
+          bash scripts/verify-release.sh --dist dist/repro-b
+
+      - name: Check deterministic pack output
+        run: |
+          cmp --silent dist/repro-a/checksums.txt dist/repro-b/checksums.txt || {
+            echo "ERROR: checksums mismatch between repro runs" >&2
+            diff -u dist/repro-a/checksums.txt dist/repro-b/checksums.txt || true
+            exit 1
+          }

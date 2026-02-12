@@ -2,6 +2,18 @@
 
 Get the distributed infinite canvas metaverse running in **under 5 minutes**!
 
+## 60-second deterministic portal demo
+
+```bash
+npm install
+npm run release:pack
+npm run release:verify
+python3 -m http.server -d dist/metaverse-kit-v0.1 8787
+# open http://localhost:8787/demo.bundle/portal/index.html
+```
+
+Use the file picker to load `demo.bundle/manifest.json` from the same served directory.
+
 ## Prerequisites
 
 - Node.js >= 18.0.0

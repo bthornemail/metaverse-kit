@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Metaverse Demo Portal (Replay Viewer)</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Demo Metaverse Portal</h1>
+    <div id="status">Loading bundle…</div>
+    <button id="exportProposal" type="button">Export Proposal</button>
+    <div id="proposalStatus" class="small"></div>
+  </header>
+  <main>
+    <section>
+      <h2>Harmonic Timeline</h2>
+      <div id="harmonic"></div>
+    </section>
+    <section>
+      <h2>Civic Graph</h2>
+      <div id="graph"></div>
+    </section>
+    <section>
+      <h2>Narrative</h2>
+      <div id="story"></div>
+    </section>
+  </main>
+  <script type="module" src="./runtime.js"></script>
+</body>
+</html>

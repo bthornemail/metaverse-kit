@@ -1,0 +1,8 @@
+{
+  "name": "@metaverse-kit/mv-verify-demo",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mv-verify-demo": "./index.js"
+  }
+}

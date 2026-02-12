@@ -1,0 +1,39 @@
+name: release-sbom
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build release payload
+        run: npm run -s release:pack
+
+      - name: Generate SBOM and provenance
+        run: npm run -s release:sbom
+
+      - name: Verify release payload
+        run: npm run -s release:verify
+
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-sbom-${{ github.ref_name }}
+          path: |
+            dist/metaverse-kit-v0.1/sbom-npm-ls.json
+            dist/metaverse-kit-v0.1/provenance.json

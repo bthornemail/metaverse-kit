@@ -1,0 +1,29 @@
+name: key-lineage-guard
+
+on:
+  pull_request:
+    paths:
+      - 'keys/active.json'
+      - 'keys/history.json'
+      - 'scripts/check-active-key.sh'
+      - 'docs/KEY_ROTATION.md'
+      - 'package.json'
+  push:
+    branches:
+      - main
+    paths:
+      - 'keys/active.json'
+      - 'keys/history.json'
+      - 'scripts/check-active-key.sh'
+      - 'docs/KEY_ROTATION.md'
+      - 'package.json'
+
+jobs:
+  check-active-key:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate active key lineage
+        run: bash scripts/check-active-key.sh

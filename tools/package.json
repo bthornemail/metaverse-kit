@@ -7,6 +7,10 @@
     "mv-host": "./mv-host/index.js",
     "mv-client": "./mv-client/index.js",
     "mv-replay": "./mv-replay/index.js",
-    "mv-ext32": "./mv-ext32/index.js"
+    "mv-ext32": "./mv-ext32/index.js",
+    "mv-portmatroid-project": "./mv-portmatroid-project/index.js",
+    "mv-pack-demo": "./mv-pack-demo/index.js",
+    "mv-proposal-bundle": "./mv-proposal-bundle/index.js",
+    "mv-verify-demo": "./mv-verify-demo/index.js"
   }
 }
