@@ -1,0 +1,34 @@
+name: wave22 reflection guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE22_REFLECTION_ABI.md"
+      - "tools/mv-reflect/**"
+      - "scripts/wave22-*"
+      - "dev-docs/wave22/**"
+      - "package.json"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave22-reflection:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install deps
+        run: npm ci
+
+      - name: wave22 golden
+        run: npm run -s wave22:golden
+
+      - name: wave22 must-reject
+        run: npm run -s wave22:must-reject

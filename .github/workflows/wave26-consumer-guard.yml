@@ -1,0 +1,35 @@
+name: wave26 consumer guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE26_CONSUMER_AXIS_ABI.md"
+      - "tools/mv-consumer-metric/**"
+      - "scripts/wave26-*"
+      - "dev-docs/wave26/**"
+      - "dev-docs/wave25/**"
+      - "package.json"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave26-consumer:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install deps
+        run: npm ci
+
+      - name: wave26 golden
+        run: npm run -s wave26:golden
+
+      - name: wave26 must-reject
+        run: npm run -s wave26:must-reject

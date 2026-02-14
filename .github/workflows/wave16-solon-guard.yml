@@ -1,0 +1,37 @@
+name: wave16 solon guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE16_*"
+      - "docs/NARRATIVE_PORTAL_MODE.md"
+      - "tools/mv-interaction-tape/**"
+      - "tools/mv-template-generate/**"
+      - "scripts/wave16-solon-*"
+      - "portal/**"
+      - "dev-docs/narrative/**"
+      - "package.json"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave16-solon:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install deps
+        run: npm ci
+
+      - name: wave16 golden
+        run: npm run -s wave16:golden
+
+      - name: wave16 must-reject
+        run: npm run -s wave16:must-reject

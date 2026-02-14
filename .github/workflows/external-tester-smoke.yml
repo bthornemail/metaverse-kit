@@ -1,0 +1,59 @@
+name: external-tester-smoke
+
+on:
+  pull_request:
+    paths:
+      - "scripts/external-tester-smoke.sh"
+      - "scripts/release-pack.sh"
+      - "scripts/verify-release.sh"
+      - "scripts/release-verify-signatures.sh"
+      - "tools/mv-verify-demo/**"
+      - "tools/mv-proposal-bundle/**"
+      - "docs/EXTERNAL_TESTER_KIT.md"
+      - "docs/templates/proposal-actions.sample.json"
+      - "portal/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/external-tester-smoke.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "scripts/external-tester-smoke.sh"
+      - "scripts/release-pack.sh"
+      - "scripts/verify-release.sh"
+      - "scripts/release-verify-signatures.sh"
+      - "tools/mv-verify-demo/**"
+      - "tools/mv-proposal-bundle/**"
+      - "docs/EXTERNAL_TESTER_KIT.md"
+      - "docs/templates/proposal-actions.sample.json"
+      - "portal/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/external-tester-smoke.yml"
+  workflow_dispatch:
+
+jobs:
+  external-smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build release artifact
+        run: npm run -s release:pack
+
+      - name: Verify release artifact
+        run: npm run -s release:verify
+
+      - name: External tester smoke
+        run: npm run -s external:tester-smoke -- --dist dist/metaverse-kit-v0.1

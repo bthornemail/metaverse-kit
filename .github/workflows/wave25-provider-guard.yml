@@ -1,0 +1,34 @@
+name: wave25 provider guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE25_PROVIDER_AXIS_ABI.md"
+      - "tools/mv-provider-metric/**"
+      - "scripts/wave25-*"
+      - "dev-docs/wave25/**"
+      - "package.json"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave25-provider:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install deps
+        run: npm ci
+
+      - name: wave25 golden
+        run: npm run -s wave25:golden
+
+      - name: wave25 must-reject
+        run: npm run -s wave25:must-reject

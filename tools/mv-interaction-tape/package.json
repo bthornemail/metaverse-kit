@@ -1,0 +1,8 @@
+{
+  "name": "@metaverse-kit/mv-interaction-tape",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mv-interaction-tape": "./index.js"
+  }
+}

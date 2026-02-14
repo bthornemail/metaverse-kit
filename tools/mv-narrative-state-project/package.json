@@ -1,0 +1,8 @@
+{
+  "name": "@metaverse-kit/mv-narrative-state-project",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mv-narrative-state-project": "./index.js"
+  }
+}

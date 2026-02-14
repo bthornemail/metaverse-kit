@@ -1,0 +1,35 @@
+name: wave21 alignment guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE21_ALIGNMENT_*"
+      - "tools/mv-alignment/**"
+      - "scripts/wave21-*"
+      - "dev-docs/wave21/**"
+      - "package.json"
+      - ".github/workflows/wave21-alignment-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave21-alignment:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install deps
+        run: npm ci
+
+      - name: wave21 golden
+        run: npm run -s wave21:golden
+
+      - name: wave21 must-reject
+        run: npm run -s wave21:must-reject

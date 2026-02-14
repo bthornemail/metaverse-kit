@@ -7,15 +7,21 @@ function parseArgs(argv) {
   const out = {
     out: "demo.bundle",
     includePortal: "0",
+    entityModels: [],
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--story" && argv[i + 1]) out.story = argv[++i];
+    else if (a === "--narrative-state" && argv[i + 1]) out.narrativeState = argv[++i];
     else if (a === "--world" && argv[i + 1]) out.world = argv[++i];
     else if (a === "--events" && argv[i + 1]) out.events = argv[++i];
     else if (a === "--multiview" && argv[i + 1]) out.multiview = argv[++i];
     else if (a === "--harmonic" && argv[i + 1]) out.harmonic = argv[++i];
     else if (a === "--observer-profile" && argv[i + 1]) out.observerProfile = argv[++i];
+    else if (a === "--world-entities" && argv[i + 1]) out.worldEntities = argv[++i];
+    else if (a === "--world-graph" && argv[i + 1]) out.worldGraph = argv[++i];
+    else if (a === "--behavior-grammar" && argv[i + 1]) out.behaviorGrammar = argv[++i];
+    else if (a === "--entity-model" && argv[i + 1]) out.entityModels.push(argv[++i]);
     else if (a === "--out" && argv[i + 1]) out.out = argv[++i];
     else if (a === "--include-portal") out.includePortal = "1";
     else if (a === "--force") out.force = "1";
@@ -27,7 +33,7 @@ function parseArgs(argv) {
 
 function help() {
   return [
-    "mv-pack-demo --story <file> --world <file> --events <file> --multiview <file> --harmonic <file> --observer-profile <file> [--out demo.bundle] [--include-portal] [--force]",
+    "mv-pack-demo --story <file> --world <file> --events <file> --multiview <file> --harmonic <file> --observer-profile <file> [--world-entities <file>] [--world-graph <file>] [--behavior-grammar <file>] [--entity-model <file>] [--out demo.bundle] [--include-portal] [--force]",
     "",
     "Deterministic demo bundle packager (projection-only).",
   ].join("\n");
@@ -86,7 +92,7 @@ async function writeBytes(filePath, bytes) {
 
 async function copyPortalAssets(portalOutDir) {
   const portalDir = path.resolve(process.cwd(), "portal");
-  const names = ["index.html", "verify.js", "render.js", "runtime.js", "styles.css"];
+  const names = ["index.html", "verify.js", "render.js", "runtime.js", "narrative-mode.js", "entity-scene-adapter.js", "world-relations-adapter.js", "world-behavior-adapter.js", "styles.css"];
   for (const name of names) {
     const src = path.join(portalDir, name);
     const dst = path.join(portalOutDir, name);
@@ -118,6 +124,26 @@ async function main() {
     { role: "harmonic", src: args.harmonic, dst: "canonical/harmonic.ndjson" },
     { role: "observer_profile", src: args.observerProfile, dst: "canonical/observer_profile.json" },
   ];
+
+  if (args.narrativeState) {
+    bundleAssets.push({ role: "narrative_state", src: args.narrativeState, dst: "canonical/narrative_state.json" });
+  }
+  if (args.worldEntities) {
+    bundleAssets.push({ role: "world_entities", src: args.worldEntities, dst: "canonical/world_entities.json" });
+  }
+  if (args.worldGraph) {
+    bundleAssets.push({ role: "world_graph", src: args.worldGraph, dst: "canonical/world_graph.json" });
+  }
+  if (args.behaviorGrammar) {
+    bundleAssets.push({ role: "behavior_grammar", src: args.behaviorGrammar, dst: "canonical/behavior_grammar.json" });
+  }
+  for (let i = 0; i < args.entityModels.length; i++) {
+    bundleAssets.push({
+      role: "entity_model",
+      src: args.entityModels[i],
+      dst: `canonical/entity_model_${String(i).padStart(2, "0")}.json`,
+    });
+  }
 
   const files = [];
   for (const item of bundleAssets) {

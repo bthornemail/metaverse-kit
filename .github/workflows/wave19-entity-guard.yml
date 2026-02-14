@@ -1,0 +1,35 @@
+name: wave19 entity guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE19_*"
+      - "tools/mv-entity-model/**"
+      - "scripts/wave19-*"
+      - "dev-docs/wave19/**"
+      - "package.json"
+      - ".github/workflows/wave19-entity-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave19-entity:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install deps
+        run: npm ci
+
+      - name: wave19 golden
+        run: npm run -s wave19:golden
+
+      - name: wave19 must-reject
+        run: npm run -s wave19:must-reject

@@ -1,0 +1,34 @@
+name: wave23 archetype guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE23_ARCHETYPE_ABI.md"
+      - "tools/mv-archetype/**"
+      - "scripts/wave23-*"
+      - "dev-docs/wave23/**"
+      - "package.json"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave23-archetype:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install deps
+        run: npm ci
+
+      - name: wave23 golden
+        run: npm run -s wave23:golden
+
+      - name: wave23 must-reject
+        run: npm run -s wave23:must-reject

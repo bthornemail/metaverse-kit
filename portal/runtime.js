@@ -1,5 +1,9 @@
 import { verifyBundle } from "./verify.js";
 import { renderGraph, renderHarmonic, renderStory } from "./render.js";
+import { renderNarrativeStates } from "./narrative-mode.js";
+import { renderEntityScene } from "./entity-scene-adapter.js";
+import { renderWorldRelations } from "./world-relations-adapter.js";
+import { renderWorldBehavior } from "./world-behavior-adapter.js";
 
 const PROPOSAL_VERSION = "wave16.proposal_bundle.v0";
 
@@ -131,6 +135,7 @@ async function main() {
     const storyFile = manifest.files.find((f) => f.role === "story")?.path;
     const graphFile = manifest.files.find((f) => f.role === "world")?.path;
     const harmonicFile = manifest.files.find((f) => f.role === "harmonic")?.path;
+    const narrativeStateFile = manifest.files.find((f) => f.role === "narrative_state")?.path;
 
     if (!storyFile || !graphFile || !harmonicFile) {
       throw new Error("required bundle roles missing (story/world/harmonic)");
@@ -146,6 +151,37 @@ async function main() {
     renderHarmonic(document.getElementById("harmonic"), harmonic);
     rerenderGraph();
     renderStory(document.getElementById("story"), story);
+
+    const worldEntitiesFile = manifest.files.find((f) => f.role === "world_entities")?.path;
+    const worldGraphFile = manifest.files.find((f) => f.role === "world_graph")?.path;
+    const behaviorGrammarFile = manifest.files.find((f) => f.role === "behavior_grammar")?.path;
+    const entityModelFiles = manifest.files.filter((f) => f.role === "entity_model").map((f) => f.path);
+    if (worldEntitiesFile) {
+      const [worldEntities, entityModels] = await Promise.all([
+        fetchJson(`../${worldEntitiesFile}`),
+        Promise.all(entityModelFiles.map((p) => fetchJson(`../${p}`))),
+      ]);
+      renderEntityScene(document.getElementById("entityScene"), worldEntities, entityModels);
+    } else {
+      renderEntityScene(document.getElementById("entityScene"), null, []);
+    }
+    if (worldGraphFile) {
+      const worldGraph = await fetchJson(`../${worldGraphFile}`);
+      renderWorldRelations(document.getElementById("worldRelations"), worldGraph);
+    } else {
+      renderWorldRelations(document.getElementById("worldRelations"), null);
+    }
+    if (behaviorGrammarFile) {
+      const behaviorGrammar = await fetchJson(`../${behaviorGrammarFile}`);
+      renderWorldBehavior(document.getElementById("worldBehavior"), behaviorGrammar);
+    } else {
+      renderWorldBehavior(document.getElementById("worldBehavior"), null);
+    }
+
+    if (narrativeStateFile) {
+      const narrativeState = await fetchJson(`../${narrativeStateFile}`);
+      renderNarrativeStates(document.getElementById("narrativeState"), narrativeState);
+    }
     proposalStatus.textContent = "0 selected";
   } catch (err) {
     status.textContent = `FAILED: ${err.message || err}`;

@@ -1,0 +1,35 @@
+name: wave17 shared tape guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE17_*"
+      - "tools/mv-shared-tape/**"
+      - "scripts/wave17-*"
+      - "dev-docs/wave17/**"
+      - "package.json"
+      - ".github/workflows/wave17-shared-tape-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave17-shared-tape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install deps
+        run: npm ci
+
+      - name: wave17 golden
+        run: npm run -s wave17:golden
+
+      - name: wave17 must-reject
+        run: npm run -s wave17:must-reject

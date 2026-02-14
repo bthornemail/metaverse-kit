@@ -1,0 +1,36 @@
+name: wave18 ontology guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE18_*"
+      - "tools/mv-avatar-role/**"
+      - "tools/mv-dialogue-grammar/**"
+      - "scripts/wave18-*"
+      - "dev-docs/wave18/**"
+      - "package.json"
+      - ".github/workflows/wave18-ontology-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave18-ontology:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install deps
+        run: npm ci
+
+      - name: wave18 golden
+        run: npm run -s wave18:golden
+
+      - name: wave18 must-reject
+        run: npm run -s wave18:must-reject

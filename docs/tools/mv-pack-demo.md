@@ -16,6 +16,10 @@ mv-pack-demo \
   --multiview ./path/multiview_manifest.json \
   --harmonic ./path/harmonic.ndjson \
   --observer-profile ./path/observer_profile.json \
+  --world-entities ./path/world_entities.json \
+  --world-graph ./path/world_graph.json \
+  --behavior-grammar ./path/behavior_grammar.json \
+  --entity-model ./path/entity.v0.json \
   --out ./demo.bundle
 ```
 
@@ -23,6 +27,10 @@ Optional flags:
 
 - `--include-portal`: copy static portal viewer files into `demo.bundle/portal/`
 - `--force`: overwrite existing output directory
+- `--world-entities`: include `wave19.world_entities.v0` artifact
+- `--world-graph`: include `wave19.world_graph.v0` artifact
+- `--behavior-grammar`: include `wave20.behavior_grammar.v0` artifact
+- `--entity-model`: include one or more `wave19.entity_model.v0` artifacts
 
 ## Output
 
@@ -35,6 +43,10 @@ demo.bundle/
     multiview_manifest.json
     harmonic.ndjson
     observer_profile.json
+    world_entities.json (optional)
+    world_graph.json (optional)
+    behavior_grammar.json (optional)
+    entity_model_00.json (optional)
   manifest.json
   integrity.sha256
   portal/ (optional)

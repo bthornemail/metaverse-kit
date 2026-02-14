@@ -1,0 +1,39 @@
+[
+  {
+    "verb": "OPEN_PASSAGE",
+    "target": "sha256:7a133d4b903db17d3d983cd6455723b882b18dafff2d9234e89a1de32b30181a",
+    "params": {
+      "mode": "guided",
+      "note": "prelude-02"
+    }
+  },
+  {
+    "verb": "OPEN_PASSAGE",
+    "target": "sha256:f1b7e9a344387fcdc70451be2e373d819a36dcba39687342273a6714cd8448c2",
+    "params": {
+      "mode": "guided",
+      "note": "article-ii"
+    }
+  },
+  {
+    "verb": "SET_STANCE",
+    "target": "solon",
+    "params": {
+      "reason": "law-lens"
+    }
+  },
+  {
+    "verb": "SELECT_GENERATOR",
+    "target": "wave16.gen.solon.constitution.v0",
+    "params": {
+      "profile": "default"
+    }
+  },
+  {
+    "verb": "GENERATE_PROPOSAL",
+    "target": "wave16.gen.solon.constitution.v0",
+    "params": {
+      "format": "json"
+    }
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "kind": "annotate_node",
+    "target": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "payload": {
+      "note": "external tester annotation",
+      "source": "smoke-test"
+    }
+  }
+]

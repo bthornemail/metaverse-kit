@@ -1,0 +1,36 @@
+name: wave20 grammar guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE20_*"
+      - "tools/mv-behavior-grammar/**"
+      - "scripts/wave20-*"
+      - "dev-docs/wave20/**"
+      - "portal/**"
+      - "package.json"
+      - ".github/workflows/wave20-grammar-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave20-grammar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install deps
+        run: npm ci
+
+      - name: wave20 golden
+        run: npm run -s wave20:golden
+
+      - name: wave20 must-reject
+        run: npm run -s wave20:must-reject

@@ -1,0 +1,31 @@
+name: wave24 federation guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE24_*"
+      - "tools/mv-federate/**"
+      - "scripts/wave24-*"
+      - "dev-docs/wave24/**"
+      - "package.json"
+      - ".github/workflows/wave24-federation-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave24-federation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: install deps
+        run: npm ci
+      - name: wave24 golden
+        run: npm run -s wave24:golden
+      - name: wave24 must-reject
+        run: npm run -s wave24:must-reject

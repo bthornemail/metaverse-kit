@@ -1,0 +1,36 @@
+name: wave19 world guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE19_WORLD_*"
+      - "tools/mv-world-compose/**"
+      - "scripts/wave19-world-*"
+      - "dev-docs/wave19/**"
+      - "portal/**"
+      - "package.json"
+      - ".github/workflows/wave19-world-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave19-world:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install deps
+        run: npm ci
+
+      - name: wave19 world golden
+        run: npm run -s wave19:world:golden
+
+      - name: wave19 world must-reject
+        run: npm run -s wave19:world:must-reject

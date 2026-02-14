@@ -18,7 +18,30 @@ A local-first, event-sourced metaverse toolkit with deterministic replay, multi-
 - Release Roadmap: `docs/RELEASE_ROADMAP.md`
 - Public Release Plan: `docs/PUBLIC_RELEASE_PLAN.md`
 - Reproducible Build Guide: `docs/REPRODUCIBLE_BUILD.md`
+- Narrative Portal Mode: `docs/NARRATIVE_PORTAL_MODE.md`
+- Wave16 Narrative State ABI: `docs/WAVE16_NARRATIVE_STATE_ABI.md`
+- Wave16 Interaction Tape ABI: `docs/WAVE16_INTERACTION_EVENT_ABI.md`
+- Wave16 Template Generator ABI: `docs/WAVE16_TEMPLATE_GENERATOR_ABI.md`
+- Wave17 Shared Tape ABI: `docs/WAVE17_SHARED_TAPE_ABI.md`
+- Wave17 Merge Rules: `docs/WAVE17_MERGE_RULES.md`
+- Wave18 Avatar Role ABI: `docs/WAVE18_AVATAR_ROLE_ABI.md`
+- Wave18 Dialogue Grammar ABI: `docs/WAVE18_DIALOGUE_GRAMMAR_ABI.md`
+- Wave19 Entity Model ABI: `docs/WAVE19_ENTITY_MODEL_ABI.md`
+- Wave19.1 World Composition ABI: `docs/WAVE19_WORLD_COMPOSITION_ABI.md`
+- Wave19.2 World Graph ABI: `docs/WAVE19_WORLD_GRAPH_ABI.md`
+- Wave20 Behavior Grammar ABI: `docs/WAVE20_BEHAVIOR_GRAMMAR_ABI.md`
+- Wave21 Alignment ABI: `docs/WAVE21_ALIGNMENT_ABI.md`
+- Wave22 Reflection ABI: `docs/WAVE22_REFLECTION_ABI.md`
+- Wave23 Archetype ABI: `docs/WAVE23_ARCHETYPE_ABI.md`
+- Wave24 Federation ABI: `docs/WAVE24_FEDERATION_ABI.md`
+- Wave25 Provider Axis ABI: `docs/WAVE25_PROVIDER_AXIS_ABI.md`
+- Wave26 Consumer Axis ABI: `docs/WAVE26_CONSUMER_AXIS_ABI.md`
+- Branch Plan (Path B + D): `docs/BRANCH_PLAN_B_D.md`
+- Executable Narrative IR (research note): `docs/RESEARCH_EXECUTABLE_NARRATIVE_IR.md`
+- External Tester Evaluation Plan: `docs/EVAL_PLAN_EXTERNAL_TESTERS.md`
+- Wave16 Failure Cases: `docs/FAILURE_CASES_WAVE16_1.md`
 - Incident Response: `docs/INCIDENT_RESPONSE.md`
+- External Tester Kit: `docs/EXTERNAL_TESTER_KIT.md`
 - Release Notes: `RELEASE_NOTES.md`
 - Release Runbook: `docs/release-runbook-v0.1.md`
 - Announcement Draft: `docs/announcement-v0.1.md`
@@ -50,6 +73,23 @@ A local-first, event-sourced metaverse toolkit with deterministic replay, multi-
   - `docs/tools/mv-pack-demo.md`
   - `docs/tools/mv-proposal-bundle.md`
   - `docs/tools/mv-verify-demo.md`
+  - `docs/tools/mv-narrative-state-project.md`
+  - `docs/tools/mv-interaction-tape.md`
+  - `docs/tools/mv-template-generate.md`
+  - `docs/tools/mv-shared-tape.md`
+  - `docs/tools/mv-avatar-role.md`
+  - `docs/tools/mv-dialogue-grammar.md`
+  - `docs/tools/mv-entity-model.md`
+  - `docs/tools/mv-world-compose.md`
+  - `docs/tools/mv-world-graph.md`
+  - `docs/tools/mv-behavior-grammar.md`
+  - `docs/tools/mv-alignment.md`
+  - `docs/tools/mv-reflect.md`
+  - `docs/tools/mv-archetype.md`
+  - `docs/tools/mv-federate.md`
+  - `docs/tools/mv-provider-metric.md`
+  - `docs/tools/mv-consumer-metric.md`
+  - `docs/tools/mv-world-merge.md`
   - `docs/tools/demo-portal-eval.md`
   - `docs/tools/portal-contract-guard.md`
   - `docs/SIGNED_RELEASES.md`

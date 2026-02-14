@@ -1,0 +1,8 @@
+{
+  "name": "@metaverse-kit/mv-template-generate",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mv-template-generate": "./index.js"
+  }
+}
