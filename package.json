@@ -38,6 +38,7 @@
     "mv-federate": "node tools/mv-federate/index.js",
     "mv-provider-metric": "node tools/mv-provider-metric/index.js",
     "mv-consumer-metric": "node tools/mv-consumer-metric/index.js",
+    "mv-wallet-feed": "node tools/mv-wallet-feed/index.js",
     "mv-pack-demo": "node tools/mv-pack-demo/index.js",
     "mv-proposal-bundle": "node tools/mv-proposal-bundle/index.js",
     "mv-verify-demo": "node tools/mv-verify-demo/index.js",

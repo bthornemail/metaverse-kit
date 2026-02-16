@@ -27,8 +27,14 @@ export CSERVER_RATE_LIMIT
 export CLOSURE_TIER
 
 PHASE_INDEX=0
-PHASE_TOTAL=6
+PHASE_TOTAL=7
 TIMEOUT_BIN=""
+WALLET_FEED_FIXTURE="$ROOT_DIR/fixtures/wallet-feed/golden-wallet.ndjson"
+WALLET_FEED_TMP_DIR="$ATTEST_DIR/wallet-feed"
+WALLET_FEED_OUT="$WALLET_FEED_TMP_DIR/golden-wallet.feed.ndjson"
+WALLET_FEED_PROJECTION="$WALLET_FEED_TMP_DIR/golden-wallet.projection.json"
+WALLET_FEED_PROJECTION_SHA_PATH="$WALLET_FEED_TMP_DIR/golden-wallet.projection.sha256"
+WALLET_FEED_ADDRESS="${WALLET_FEED_ADDRESS:-0xBAf66f816aaE45CA6476809a61bA02E92BC6D183}"
 
 resolve_timeout_bin() {
   if command -v timeout >/dev/null 2>&1; then
@@ -119,6 +125,7 @@ require_cmd sha256sum
 require_cmd find
 require_cmd sort
 require_cmd xargs
+require_cmd sed
 require_cmd date
 require_cmd uname
 require_dir "$ROOT_DIR"
@@ -158,8 +165,28 @@ LIGHT_WORDNET_LOG="$(ls -1t "$LIGHT_GARDEN_DIR"/audit/artifacts/logs/*-wordnet.l
 LIGHT_CSERVER_LOG="$(ls -1t "$LIGHT_GARDEN_DIR"/audit/artifacts/logs/*-c-server.log 2>/dev/null | head -n1 || true)"
 
 phase "geometry-spine authority checks"
-run_with_timeout "$GEOMETRY_AUTHORITY_TIMEOUT_SEC" "geometry-spine closure-spine-smoke" \
-  bash -lc "cd \"$GEOMETRY_SPINE_DIR\" && AUTHORITY_GATE_PATH=\"$AUTHORITY_GATE_PATH\" AUTHORITY_STRICT=\"$AUTHORITY_STRICT\" AUTHORITY_CLASS=\"$AUTHORITY_CLASS\" bash ./scripts/closure-spine-smoke.sh"
+(
+  cd "$GEOMETRY_SPINE_DIR"
+  run_with_timeout "$GEOMETRY_AUTHORITY_TIMEOUT_SEC" "geometry-spine closure-spine-smoke" \
+    env AUTHORITY_GATE_PATH="$AUTHORITY_GATE_PATH" AUTHORITY_STRICT="$AUTHORITY_STRICT" AUTHORITY_CLASS="$AUTHORITY_CLASS" PATH="$PATH" \
+      bash ./scripts/closure-spine-smoke.sh
+)
+
+phase "wallet feed determinism"
+require_dir "$ROOT_DIR/tools/mv-wallet-feed"
+if [[ -f "$WALLET_FEED_FIXTURE" ]]; then
+  mkdir -p "$WALLET_FEED_TMP_DIR"
+  WALLET_FEED_TOOL="$ROOT_DIR/tools/mv-wallet-feed/index.js"
+  run_with_timeout "$METAVERSE_RELEASE_TIMEOUT_SEC" "wallet-feed ingest" \
+    node "$WALLET_FEED_TOOL" ingest --input "$WALLET_FEED_FIXTURE" --out "$WALLET_FEED_OUT"
+  run_with_timeout "$METAVERSE_RELEASE_TIMEOUT_SEC" "wallet-feed verify" \
+    node "$WALLET_FEED_TOOL" verify --input "$WALLET_FEED_OUT"
+  run_with_timeout "$METAVERSE_RELEASE_TIMEOUT_SEC" "wallet-feed project" \
+    node "$WALLET_FEED_TOOL" project --input "$WALLET_FEED_OUT" --address "$WALLET_FEED_ADDRESS" --out "$WALLET_FEED_PROJECTION"
+  sha256sum "$WALLET_FEED_PROJECTION" | awk '{print $1}' > "$WALLET_FEED_PROJECTION_SHA_PATH"
+else
+  echo "WARN: wallet feed fixture missing, skipping wallet determinism phase: $WALLET_FEED_FIXTURE"
+fi
 
 phase "metaverse-kit release verification"
 cd "$ROOT_DIR"
@@ -224,6 +251,10 @@ if [[ "$DETERMINISM_STATUS" == "failed" ]]; then
 fi
 
 DETERMINISM_SWEEP_SHA256="$(sha256_file "$DETERMINISM_SWEEP_PATH")"
+WALLET_FEED_FIXTURE_SHA256="$(sha256_file "$WALLET_FEED_FIXTURE")"
+WALLET_FEED_OUT_SHA256="$(sha256_file "$WALLET_FEED_OUT")"
+WALLET_FEED_PROJECTION_SHA256="$(sha256_file "$WALLET_FEED_PROJECTION")"
+WALLET_FEED_PROJECTION_EXPECTED_SHA256="$(sed -n '1p' "$WALLET_FEED_PROJECTION_SHA_PATH" 2>/dev/null || true)"
 
 AUTHORITY_GATE_SHA256="$(sha256_file "$AUTHORITY_GATE_PATH")"
 DIST_CHECKSUMS_SHA256="$(sha256_file "$DIST_DIR/checksums.txt")"
@@ -279,6 +310,13 @@ jq -n \
   --arg determinism_sweep_sha256 "$DETERMINISM_SWEEP_SHA256" \
   --arg determinism_status "$DETERMINISM_STATUS" \
   --argjson determinism_iterations "$DETERMINISM_ITERATIONS" \
+  --arg wallet_feed_fixture "$WALLET_FEED_FIXTURE" \
+  --arg wallet_feed_fixture_sha256 "$WALLET_FEED_FIXTURE_SHA256" \
+  --arg wallet_feed_out "$WALLET_FEED_OUT" \
+  --arg wallet_feed_out_sha256 "$WALLET_FEED_OUT_SHA256" \
+  --arg wallet_feed_projection "$WALLET_FEED_PROJECTION" \
+  --arg wallet_feed_projection_sha256 "$WALLET_FEED_PROJECTION_SHA256" \
+  --arg wallet_feed_projection_expected_sha256 "$WALLET_FEED_PROJECTION_EXPECTED_SHA256" \
   '{
     timestamp: $timestamp,
     closure_tier: $closure_tier,
@@ -321,6 +359,15 @@ jq -n \
       sha256: $determinism_sweep_sha256,
       status: $determinism_status,
       iterations: $determinism_iterations
+    },
+    wallet_feed: {
+      fixture_path: $wallet_feed_fixture,
+      fixture_sha256: $wallet_feed_fixture_sha256,
+      feed_path: $wallet_feed_out,
+      feed_sha256: $wallet_feed_out_sha256,
+      projection_path: $wallet_feed_projection,
+      projection_sha256: $wallet_feed_projection_sha256,
+      projection_expected_sha256: $wallet_feed_projection_expected_sha256
     }
   }' > "$ATTEST_PATH"
 

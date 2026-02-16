@@ -101,6 +101,7 @@ jobs:
           jq -e '.gate_policy.CSERVER_RATE_LIMIT == "100"' artifacts/gate-attestation.json >/dev/null
           jq -e '.closure_tier == "pr-fast" or .closure_tier == "nightly-full"' artifacts/gate-attestation.json >/dev/null
           jq -e '.determinism_sweep.path != null and .determinism_sweep.sha256 != ""' artifacts/gate-attestation.json >/dev/null
+          jq -e '.wallet_feed.feed_sha256 != "" and .wallet_feed.projection_sha256 != ""' artifacts/gate-attestation.json >/dev/null
 
       - name: Dump gate attestation on failure
         if: failure()
@@ -109,6 +110,8 @@ jobs:
           cat metaverse-kit/artifacts/gate-attestation.json || true
           echo "=== determinism-sweep ==="
           cat metaverse-kit/artifacts/determinism-sweep.txt || true
+          echo "=== wallet-feed projection ==="
+          cat metaverse-kit/artifacts/wallet-feed/golden-wallet.projection.json || true
 
       - name: Upload gate artifacts
         if: always()
@@ -119,6 +122,7 @@ jobs:
           path: |
             metaverse-kit/artifacts/gate-attestation*.json
             metaverse-kit/artifacts/determinism-sweep*.txt
+            metaverse-kit/artifacts/wallet-feed/*
             metaverse-kit/dist/**/checksums.txt
             metaverse-kit/dist/**/demo.bundle/manifest.json
             metaverse-kit/dist/**/demo.bundle/integrity.sha256
