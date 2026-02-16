@@ -31,6 +31,7 @@ jobs:
       LIGHT_GARDEN_REPO: ${{ vars.LIGHT_GARDEN_REPO }}
       GEOMETRY_SPINE_REPO: ${{ vars.GEOMETRY_SPINE_REPO }}
       CLOSURE_TIER: ${{ github.event.inputs.closure_tier }}
+      MV_WALLET_FEED_SKIP: "0"
 
     steps:
       - name: Resolve repo defaults
@@ -83,6 +84,7 @@ jobs:
             WORDNET_SIMILARITY_MODE="$WORDNET_SIMILARITY_MODE" \
             CSERVER_RATE_LIMIT="$CSERVER_RATE_LIMIT" \
             CLOSURE_TIER="$CLOSURE_TIER" \
+            MV_WALLET_FEED_SKIP="$MV_WALLET_FEED_SKIP" \
             bash --noprofile --norc -lc '
               cd "$GITHUB_WORKSPACE/metaverse-kit" && \
               LIGHT_GARDEN_DIR="$GITHUB_WORKSPACE/light-garden" \
@@ -102,6 +104,8 @@ jobs:
           jq -e '.closure_tier == "pr-fast" or .closure_tier == "nightly-full"' artifacts/gate-attestation.json >/dev/null
           jq -e '.determinism_sweep.path != null and .determinism_sweep.sha256 != ""' artifacts/gate-attestation.json >/dev/null
           jq -e '.wallet_feed.feed_sha256 != "" and .wallet_feed.projection_sha256 != ""' artifacts/gate-attestation.json >/dev/null
+          jq -e '.wallet_feed.projection_sha256 == .wallet_feed.projection_expected_sha256' artifacts/gate-attestation.json >/dev/null
+          jq -e '.metaverse_kit.dist_dir_policy == "latest" or .metaverse_kit.dist_dir_policy == "explicit"' artifacts/gate-attestation.json >/dev/null
 
       - name: Dump gate attestation on failure
         if: failure()

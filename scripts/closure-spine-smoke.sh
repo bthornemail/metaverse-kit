@@ -13,6 +13,7 @@ WORDNET_SIMILARITY_MODE="${WORDNET_SIMILARITY_MODE:-strict}"
 CSERVER_RATE_LIMIT="${CSERVER_RATE_LIMIT:-100}"
 CLOSURE_TIER="${CLOSURE_TIER:-pr-fast}"
 DIST_DIR="${DIST_DIR:-}"
+DIST_DIR_POLICY="explicit"
 ATTEST_DIR="$ROOT_DIR/artifacts"
 ATTEST_PATH="$ATTEST_DIR/gate-attestation.json"
 DETERMINISM_SWEEP_PATH="$ATTEST_DIR/determinism-sweep.txt"
@@ -33,8 +34,9 @@ WALLET_FEED_FIXTURE="$ROOT_DIR/fixtures/wallet-feed/golden-wallet.ndjson"
 WALLET_FEED_TMP_DIR="$ATTEST_DIR/wallet-feed"
 WALLET_FEED_OUT="$WALLET_FEED_TMP_DIR/golden-wallet.feed.ndjson"
 WALLET_FEED_PROJECTION="$WALLET_FEED_TMP_DIR/golden-wallet.projection.json"
-WALLET_FEED_PROJECTION_SHA_PATH="$WALLET_FEED_TMP_DIR/golden-wallet.projection.sha256"
+WALLET_FEED_EXPECTED_SHA_PATH="$ROOT_DIR/fixtures/wallet-feed/golden-wallet.projection.sha256"
 WALLET_FEED_ADDRESS="${WALLET_FEED_ADDRESS:-0xBAf66f816aaE45CA6476809a61bA02E92BC6D183}"
+MV_WALLET_FEED_SKIP="${MV_WALLET_FEED_SKIP:-0}"
 
 resolve_timeout_bin() {
   if command -v timeout >/dev/null 2>&1; then
@@ -147,6 +149,7 @@ echo "  LIGHT_GARDEN_VALIDATE_TIMEOUT_SEC=$LIGHT_GARDEN_VALIDATE_TIMEOUT_SEC"
 echo "  GEOMETRY_AUTHORITY_TIMEOUT_SEC=$GEOMETRY_AUTHORITY_TIMEOUT_SEC"
 echo "  METAVERSE_RELEASE_TIMEOUT_SEC=$METAVERSE_RELEASE_TIMEOUT_SEC"
 echo "  DETERMINISM_ITERATION_TIMEOUT_SEC=$DETERMINISM_ITERATION_TIMEOUT_SEC"
+echo "  MV_WALLET_FEED_SKIP=$MV_WALLET_FEED_SKIP"
 
 # Capture repository state before gate execution generates any local artifacts.
 MK_COMMIT="$(git_sha "$ROOT_DIR")"
@@ -174,18 +177,32 @@ phase "geometry-spine authority checks"
 
 phase "wallet feed determinism"
 require_dir "$ROOT_DIR/tools/mv-wallet-feed"
-if [[ -f "$WALLET_FEED_FIXTURE" ]]; then
+if [[ "$MV_WALLET_FEED_SKIP" == "1" ]]; then
+  echo "WARN: wallet feed phase skipped by MV_WALLET_FEED_SKIP=1"
+elif [[ -f "$WALLET_FEED_FIXTURE" ]]; then
   mkdir -p "$WALLET_FEED_TMP_DIR"
   WALLET_FEED_TOOL="$ROOT_DIR/tools/mv-wallet-feed/index.js"
+  if [[ ! -f "$WALLET_FEED_EXPECTED_SHA_PATH" ]]; then
+    echo "ERROR: wallet feed expected digest file missing: $WALLET_FEED_EXPECTED_SHA_PATH" >&2
+    exit 2
+  fi
   run_with_timeout "$METAVERSE_RELEASE_TIMEOUT_SEC" "wallet-feed ingest" \
     node "$WALLET_FEED_TOOL" ingest --input "$WALLET_FEED_FIXTURE" --out "$WALLET_FEED_OUT"
   run_with_timeout "$METAVERSE_RELEASE_TIMEOUT_SEC" "wallet-feed verify" \
     node "$WALLET_FEED_TOOL" verify --input "$WALLET_FEED_OUT"
   run_with_timeout "$METAVERSE_RELEASE_TIMEOUT_SEC" "wallet-feed project" \
     node "$WALLET_FEED_TOOL" project --input "$WALLET_FEED_OUT" --address "$WALLET_FEED_ADDRESS" --out "$WALLET_FEED_PROJECTION"
-  sha256sum "$WALLET_FEED_PROJECTION" | awk '{print $1}' > "$WALLET_FEED_PROJECTION_SHA_PATH"
+  WALLET_FEED_PROJECTION_SHA256_LOCAL="$(sha256sum "$WALLET_FEED_PROJECTION" | awk '{print $1}')"
+  WALLET_FEED_PROJECTION_EXPECTED_SHA256_LOCAL="$(sed -n '1p' "$WALLET_FEED_EXPECTED_SHA_PATH" | tr -d '[:space:]')"
+  if [[ "$WALLET_FEED_PROJECTION_SHA256_LOCAL" != "$WALLET_FEED_PROJECTION_EXPECTED_SHA256_LOCAL" ]]; then
+    echo "ERROR: wallet feed projection digest mismatch" >&2
+    echo "  expected=$WALLET_FEED_PROJECTION_EXPECTED_SHA256_LOCAL" >&2
+    echo "  actual=$WALLET_FEED_PROJECTION_SHA256_LOCAL" >&2
+    exit 2
+  fi
 else
-  echo "WARN: wallet feed fixture missing, skipping wallet determinism phase: $WALLET_FEED_FIXTURE"
+  echo "ERROR: wallet feed fixture missing: $WALLET_FEED_FIXTURE" >&2
+  exit 2
 fi
 
 phase "metaverse-kit release verification"
@@ -194,6 +211,7 @@ run_with_timeout "$METAVERSE_RELEASE_TIMEOUT_SEC" "metaverse-kit release:pack" n
 run_with_timeout "$METAVERSE_RELEASE_TIMEOUT_SEC" "metaverse-kit release:verify" npm run -s release:verify
 
 if [[ -z "$DIST_DIR" ]]; then
+  DIST_DIR_POLICY="latest"
   DIST_DIR="$(ls -1dt "$ROOT_DIR"/dist/metaverse-kit-* 2>/dev/null | head -n1 || true)"
   if [[ -n "$DIST_DIR" ]]; then
     DIST_DIR="${DIST_DIR#"$ROOT_DIR"/}"
@@ -254,7 +272,7 @@ DETERMINISM_SWEEP_SHA256="$(sha256_file "$DETERMINISM_SWEEP_PATH")"
 WALLET_FEED_FIXTURE_SHA256="$(sha256_file "$WALLET_FEED_FIXTURE")"
 WALLET_FEED_OUT_SHA256="$(sha256_file "$WALLET_FEED_OUT")"
 WALLET_FEED_PROJECTION_SHA256="$(sha256_file "$WALLET_FEED_PROJECTION")"
-WALLET_FEED_PROJECTION_EXPECTED_SHA256="$(sed -n '1p' "$WALLET_FEED_PROJECTION_SHA_PATH" 2>/dev/null || true)"
+WALLET_FEED_PROJECTION_EXPECTED_SHA256="$(sed -n '1p' "$WALLET_FEED_EXPECTED_SHA_PATH" 2>/dev/null | tr -d '[:space:]' || true)"
 
 AUTHORITY_GATE_SHA256="$(sha256_file "$AUTHORITY_GATE_PATH")"
 DIST_CHECKSUMS_SHA256="$(sha256_file "$DIST_DIR/checksums.txt")"
@@ -302,6 +320,7 @@ jq -n \
   --arg light_wordnet_log "${LIGHT_WORDNET_LOG:-}" \
   --arg light_cserver_log "${LIGHT_CSERVER_LOG:-}" \
   --arg dist_dir "$DIST_DIR" \
+  --arg dist_dir_policy "$DIST_DIR_POLICY" \
   --arg dist_checksums_sha256 "$DIST_CHECKSUMS_SHA256" \
   --arg dist_manifest_sha256 "$DIST_MANIFEST_SHA256" \
   --arg dist_integrity_sha256 "$DIST_INTEGRITY_SHA256" \
@@ -349,6 +368,7 @@ jq -n \
     },
     metaverse_kit: {
       dist_dir: $dist_dir,
+      dist_dir_policy: $dist_dir_policy,
       checksums_txt_sha256: $dist_checksums_sha256,
       demo_bundle_manifest_sha256: $dist_manifest_sha256,
       demo_bundle_integrity_sha256: $dist_integrity_sha256,

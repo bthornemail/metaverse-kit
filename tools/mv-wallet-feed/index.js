@@ -8,6 +8,12 @@ const VERSION = "wallet_feed.v1";
 const FEED_TYPE = "WalletEvent";
 const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
 const DIR_RE = /^(in|out)$/;
+const UINT_RE = /^[0-9]+$/;
+const SIG_RE = /^ed25519:[A-Za-z0-9+/=]+$/;
+const DEFAULT_ALLOWLIST_PATH = "fixtures/wallet-feed/key-allowlist.json";
+const DEFAULT_KEY_ID = "dev-builder";
+
+const DEFAULT_PRIVATE_KEY_PEM = `-----BEGIN PRIVATE KEY-----\nMC4CAQAwBQYDK2VwBCIEIKnCB466M9g36K4Eo0jpQ3t7xvywUxHMWjLWXr68IQpY\n-----END PRIVATE KEY-----\n`;
 
 function die(msg) {
   console.error(`ERROR: ${msg}`);
@@ -64,28 +70,35 @@ function requireString(v, ctx) {
 }
 
 function requireUIntString(v, ctx) {
-  if (typeof v !== "string" || !/^[0-9]+$/.test(v)) die(`${ctx} must be unsigned decimal string`);
+  if (typeof v !== "string" || !UINT_RE.test(v)) die(`${ctx} must be unsigned decimal string`);
 }
 
-function validateEvent(e, i) {
-  const ctx = `event[${i}]`;
-  requireString(e.type, `${ctx}.type`);
-  requireString(e.chain, `${ctx}.chain`);
-  requireString(e.address, `${ctx}.address`);
-  requireString(e.tx, `${ctx}.tx`);
-  requireString(e.event, `${ctx}.event`);
-  requireString(e.asset, `${ctx}.asset`);
-  requireString(e.amount, `${ctx}.amount`);
-  requireString(e.direction, `${ctx}.direction`);
-  requireString(e.source, `${ctx}.source`);
-  requireUIntString(String(e.block), `${ctx}.block`);
-  requireUIntString(String(e.timestamp), `${ctx}.timestamp`);
-  if (!ADDRESS_RE.test(e.address)) die(`${ctx}.address invalid`);
-  if (!DIR_RE.test(e.direction)) die(`${ctx}.direction invalid`);
+function readAmountBaseUnits(v, ctx) {
+  requireUIntString(String(v), ctx);
+  try {
+    return BigInt(String(v));
+  } catch {
+    die(`${ctx} is not parseable as bigint`);
+  }
 }
 
-function signEnvelope(payload) {
-  const body = {
+async function loadKeyAllowlist() {
+  const p = path.resolve(process.cwd(), process.env.MV_WALLET_FEED_KEY_ALLOWLIST || DEFAULT_ALLOWLIST_PATH);
+  const raw = await fs.readFile(p, "utf8");
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    die(`key allowlist parse failed: ${err.message || err}`);
+  }
+  if (!parsed || typeof parsed !== "object" || !parsed.keys || typeof parsed.keys !== "object") {
+    die("key allowlist must contain object field 'keys'");
+  }
+  return parsed.keys;
+}
+
+function envelopeBody(payload) {
+  return {
     chain: payload.chain,
     entity_id: payload.entity_id,
     entity_type: payload.entity_type,
@@ -94,11 +107,18 @@ function signEnvelope(payload) {
     timestamp: payload.timestamp,
     v: VERSION,
   };
+}
+
+async function signEnvelope(payload) {
+  const body = envelopeBody(payload);
   const digest = sha256Pref(Buffer.from(canonicalJson(body), "utf8"));
-  const keyId = process.env.MV_WALLET_FEED_KEY_ID || "dev-builder";
-  const sigBody = `${keyId}:${digest}`;
-  const signature = `sha256:${crypto.createHash("sha256").update(sigBody).digest("hex")}`;
-  return { ...body, digest, proof: { key_id: keyId, signature } };
+  const keyId = process.env.MV_WALLET_FEED_KEY_ID || DEFAULT_KEY_ID;
+  const privatePem = process.env.MV_WALLET_FEED_PRIVATE_KEY_PEM || DEFAULT_PRIVATE_KEY_PEM;
+  const privateKey = crypto.createPrivateKey(privatePem);
+  const publicKey = crypto.createPublicKey(privateKey).export({ type: "spki", format: "pem" }).toString();
+  const signatureRaw = crypto.sign(null, Buffer.from(digest, "utf8"), privateKey);
+  const signature = `ed25519:${signatureRaw.toString("base64")}`;
+  return { ...body, digest, proof: { key_id: keyId, signature, public_key: publicKey } };
 }
 
 function toEnvelope(e) {
@@ -109,17 +129,17 @@ function toEnvelope(e) {
     block: String(e.block),
     event: e.event,
     asset: e.asset,
-    amount: String(e.amount),
+    amount_base_units: String(e.amount),
     direction: e.direction,
   };
-  return signEnvelope({
+  return {
     chain: e.chain,
     entity_id: `${e.chain}:${payload.address}:${payload.tx}:${payload.event}`,
     entity_type: FEED_TYPE,
     payload,
     source: e.source,
     timestamp: String(e.timestamp),
-  });
+  };
 }
 
 async function readText(filePath) {
@@ -137,7 +157,45 @@ async function loadEnvelopes(filePath) {
   return parseNdjson(text);
 }
 
-function validateEnvelope(env, i) {
+function validateEvent(e, i) {
+  const ctx = `event[${i}]`;
+  requireString(e.type, `${ctx}.type`);
+  requireString(e.chain, `${ctx}.chain`);
+  requireString(e.address, `${ctx}.address`);
+  requireString(e.tx, `${ctx}.tx`);
+  requireString(e.event, `${ctx}.event`);
+  requireString(e.asset, `${ctx}.asset`);
+  requireString(e.direction, `${ctx}.direction`);
+  requireString(e.source, `${ctx}.source`);
+  requireUIntString(String(e.block), `${ctx}.block`);
+  requireUIntString(String(e.timestamp), `${ctx}.timestamp`);
+  readAmountBaseUnits(e.amount, `${ctx}.amount`);
+  if (!ADDRESS_RE.test(e.address)) die(`${ctx}.address invalid`);
+  if (!DIR_RE.test(e.direction)) die(`${ctx}.direction invalid`);
+}
+
+function verifyEnvelopeSignature(env, allowlist) {
+  const keyId = env.proof.key_id;
+  const allowlistedPublic = allowlist[keyId];
+  if (!allowlistedPublic || typeof allowlistedPublic !== "string") {
+    die(`envelope key_id not allowlisted: ${keyId}`);
+  }
+  const pubPem = env.proof.public_key;
+  if (pubPem !== allowlistedPublic) {
+    die(`envelope public key mismatch for key_id: ${keyId}`);
+  }
+  const sigB64 = env.proof.signature.split(":", 2)[1];
+  const sig = Buffer.from(sigB64, "base64");
+  const ok = crypto.verify(
+    null,
+    Buffer.from(env.digest, "utf8"),
+    crypto.createPublicKey(pubPem),
+    sig
+  );
+  if (!ok) die(`envelope signature verify failed for key_id: ${keyId}`);
+}
+
+function validateEnvelope(env, i, allowlist) {
   const ctx = `envelope[${i}]`;
   const requiredTop = ["chain", "digest", "entity_id", "entity_type", "payload", "proof", "source", "timestamp", "v"];
   for (const k of requiredTop) {
@@ -152,30 +210,24 @@ function validateEnvelope(env, i) {
   if (!env.proof || typeof env.proof !== "object") die(`${ctx}.proof missing`);
   requireString(env.proof.key_id, `${ctx}.proof.key_id`);
   requireString(env.proof.signature, `${ctx}.proof.signature`);
+  requireString(env.proof.public_key, `${ctx}.proof.public_key`);
   if (typeof env.payload !== "object" || !env.payload) die(`${ctx}.payload missing`);
   requireString(env.payload.address, `${ctx}.payload.address`);
   requireUIntString(String(env.payload.block), `${ctx}.payload.block`);
   requireString(env.payload.tx, `${ctx}.payload.tx`);
   requireString(env.payload.event, `${ctx}.payload.event`);
   requireString(env.payload.asset, `${ctx}.payload.asset`);
-  requireString(env.payload.amount, `${ctx}.payload.amount`);
   requireString(env.payload.direction, `${ctx}.payload.direction`);
+  readAmountBaseUnits(env.payload.amount_base_units, `${ctx}.payload.amount_base_units`);
   if (!ADDRESS_RE.test(env.payload.address)) die(`${ctx}.payload.address invalid`);
   if (!DIR_RE.test(env.payload.direction)) die(`${ctx}.payload.direction invalid`);
   if (!/^sha256:[0-9a-f]{64}$/.test(env.digest)) die(`${ctx}.digest invalid`);
-  if (!/^sha256:[0-9a-f]{64}$/.test(env.proof.signature)) die(`${ctx}.proof.signature invalid`);
+  if (!SIG_RE.test(env.proof.signature)) die(`${ctx}.proof.signature invalid`);
 
-  const body = {
-    chain: env.chain,
-    entity_id: env.entity_id,
-    entity_type: env.entity_type,
-    payload: env.payload,
-    source: env.source,
-    timestamp: env.timestamp,
-    v: env.v,
-  };
+  const body = envelopeBody(env);
   const gotDigest = sha256Pref(Buffer.from(canonicalJson(body), "utf8"));
   if (gotDigest !== env.digest) die(`${ctx}.digest mismatch`);
+  verifyEnvelopeSignature(env, allowlist);
 }
 
 function project(address, envelopes) {
@@ -183,26 +235,28 @@ function project(address, envelopes) {
   const filtered = envelopes
     .filter((e) => e.payload?.address?.toLowerCase() === addr)
     .sort((a, b) => {
-      const bA = Number(a.payload.block);
-      const bB = Number(b.payload.block);
-      if (bA !== bB) return bA - bB;
+      const bA = BigInt(a.payload.block);
+      const bB = BigInt(b.payload.block);
+      if (bA !== bB) return bA < bB ? -1 : 1;
       return a.payload.tx.localeCompare(b.payload.tx);
     });
 
   const balances = {};
   for (const e of filtered) {
     const key = `${e.chain}:${e.payload.asset}`;
-    const val = Number(e.payload.amount);
-    const cur = Number(balances[key] || 0);
+    const val = BigInt(e.payload.amount_base_units);
+    const cur = BigInt(balances[key] || "0");
     const next = e.payload.direction === "in" ? cur + val : cur - val;
-    balances[key] = Number(next.toFixed(12)).toString();
+    balances[key] = next.toString();
   }
+
   return {
     v: "wallet_projection.v1",
     address: addr,
     event_count: String(filtered.length),
     balances,
     latest_block: filtered.length > 0 ? String(filtered[filtered.length - 1].payload.block) : "0",
+    amount_unit: "base_units",
   };
 }
 
@@ -219,10 +273,11 @@ async function main() {
   if (args.mode === "ingest") {
     if (!args.input || !args.out) die("ingest requires --input and --out");
     const lines = parseNdjson(await readText(args.input));
-    const envelopes = lines.map((line, i) => {
+    const envelopes = [];
+    for (const [i, line] of lines.entries()) {
       validateEvent(line, i);
-      return toEnvelope(line);
-    });
+      envelopes.push(await signEnvelope(toEnvelope(line)));
+    }
     const out = envelopes.map((e) => canonicalJson(e)).join("");
     await writeText(args.out, out);
     console.log(`ok mv-wallet-feed ingest events=${envelopes.length} out=${args.out}`);
@@ -231,8 +286,9 @@ async function main() {
 
   if (args.mode === "verify") {
     if (!args.input) die("verify requires --input");
+    const allowlist = await loadKeyAllowlist();
     const envelopes = await loadEnvelopes(args.input);
-    envelopes.forEach((e, i) => validateEnvelope(e, i));
+    envelopes.forEach((e, i) => validateEnvelope(e, i, allowlist));
     console.log(`ok mv-wallet-feed verify envelopes=${envelopes.length}`);
     return;
   }
@@ -240,8 +296,9 @@ async function main() {
   if (args.mode === "project") {
     if (!args.input || !args.out || !args.address) die("project requires --input --address --out");
     if (!ADDRESS_RE.test(args.address)) die("--address invalid");
+    const allowlist = await loadKeyAllowlist();
     const envelopes = await loadEnvelopes(args.input);
-    envelopes.forEach((e, i) => validateEnvelope(e, i));
+    envelopes.forEach((e, i) => validateEnvelope(e, i, allowlist));
     const out = project(args.address, envelopes);
     const outText = canonicalJson(out);
     await writeText(args.out, outText);
@@ -252,6 +309,7 @@ async function main() {
 
   if (args.mode === "serve") {
     if (!args.input) die("serve requires --input");
+    const allowlist = await loadKeyAllowlist();
     const port = Number(args.port || 7777);
     const absInput = path.resolve(process.cwd(), args.input);
     const server = http.createServer(async (req, res) => {
@@ -269,6 +327,7 @@ async function main() {
         }
         const since = Number(u.searchParams.get("since") || "0");
         const rows = parseNdjson(await fs.readFile(absInput, "utf8"));
+        rows.forEach((e, i) => validateEnvelope(e, i, allowlist));
         const sliced = rows.slice(Number.isFinite(since) && since >= 0 ? since : 0);
         res.setHeader("content-type", "application/x-ndjson; charset=utf-8");
         res.statusCode = 200;
