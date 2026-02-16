@@ -16,6 +16,11 @@ on:
       - ".github/workflows/closure-spine-gate.yml"
       - "freeze/**"
   workflow_dispatch:
+    inputs:
+      closure_tier:
+        description: "Gate tier (pr-fast or nightly-full)"
+        required: false
+        default: "pr-fast"
 
 jobs:
   closure-spine-smoke:
@@ -25,6 +30,7 @@ jobs:
       CSERVER_RATE_LIMIT: "100"
       LIGHT_GARDEN_REPO: ${{ vars.LIGHT_GARDEN_REPO }}
       GEOMETRY_SPINE_REPO: ${{ vars.GEOMETRY_SPINE_REPO }}
+      CLOSURE_TIER: ${{ github.event.inputs.closure_tier }}
 
     steps:
       - name: Resolve repo defaults
@@ -32,6 +38,7 @@ jobs:
         run: |
           echo "LIGHT_GARDEN_REPO=${LIGHT_GARDEN_REPO:-${GITHUB_REPOSITORY_OWNER}/light-garden}" >> "$GITHUB_ENV"
           echo "GEOMETRY_SPINE_REPO=${GEOMETRY_SPINE_REPO:-${GITHUB_REPOSITORY_OWNER}/geometry-spine}" >> "$GITHUB_ENV"
+          echo "CLOSURE_TIER=${CLOSURE_TIER:-pr-fast}" >> "$GITHUB_ENV"
 
       - name: Checkout metaverse-kit
         uses: actions/checkout@v4
@@ -56,7 +63,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
 
       - name: Install metaverse-kit deps
         working-directory: metaverse-kit
@@ -75,6 +82,7 @@ jobs:
             GITHUB_WORKSPACE="$GITHUB_WORKSPACE" \
             WORDNET_SIMILARITY_MODE="$WORDNET_SIMILARITY_MODE" \
             CSERVER_RATE_LIMIT="$CSERVER_RATE_LIMIT" \
+            CLOSURE_TIER="$CLOSURE_TIER" \
             bash --noprofile --norc -lc '
               cd "$GITHUB_WORKSPACE/metaverse-kit" && \
               LIGHT_GARDEN_DIR="$GITHUB_WORKSPACE/light-garden" \
@@ -89,6 +97,18 @@ jobs:
           jq -e '.repos["metaverse-kit"].dirty == false' artifacts/gate-attestation.json >/dev/null
           jq -e '.repos["light-garden"].dirty == false' artifacts/gate-attestation.json >/dev/null
           jq -e '.repos["geometry-spine"].dirty == false' artifacts/gate-attestation.json >/dev/null
+          jq -e '.gate_policy.WORDNET_SIMILARITY_MODE == "strict"' artifacts/gate-attestation.json >/dev/null
+          jq -e '.gate_policy.CSERVER_RATE_LIMIT == "100"' artifacts/gate-attestation.json >/dev/null
+          jq -e '.closure_tier == "pr-fast" or .closure_tier == "nightly-full"' artifacts/gate-attestation.json >/dev/null
+          jq -e '.determinism_sweep.path != null and .determinism_sweep.sha256 != ""' artifacts/gate-attestation.json >/dev/null
+
+      - name: Dump gate attestation on failure
+        if: failure()
+        run: |
+          echo "=== gate-attestation ==="
+          cat metaverse-kit/artifacts/gate-attestation.json || true
+          echo "=== determinism-sweep ==="
+          cat metaverse-kit/artifacts/determinism-sweep.txt || true
 
       - name: Upload gate artifacts
         if: always()
@@ -98,6 +118,7 @@ jobs:
           if-no-files-found: warn
           path: |
             metaverse-kit/artifacts/gate-attestation*.json
+            metaverse-kit/artifacts/determinism-sweep*.txt
             metaverse-kit/dist/**/checksums.txt
             metaverse-kit/dist/**/demo.bundle/manifest.json
             metaverse-kit/dist/**/demo.bundle/integrity.sha256
