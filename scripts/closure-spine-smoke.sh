@@ -281,6 +281,7 @@ WALLET_FEED_FIXTURE_SHA256="$(sha256_file "$WALLET_FEED_FIXTURE")"
 WALLET_FEED_OUT_SHA256="$(sha256_file "$WALLET_FEED_OUT")"
 WALLET_FEED_PROJECTION_SHA256="$(sha256_file "$WALLET_FEED_PROJECTION")"
 WALLET_FEED_PROJECTION_EXPECTED_SHA256="$(sed -n '1p' "$WALLET_FEED_EXPECTED_SHA_PATH" 2>/dev/null | tr -d '[:space:]' || true)"
+WALLET_FEED_PROOF_KEY_ID="$(head -n 1 "$WALLET_FEED_OUT" 2>/dev/null | jq -r '.proof.key_id // empty' 2>/dev/null || true)"
 
 AUTHORITY_GATE_SHA256="$(sha256_file "$AUTHORITY_GATE_PATH")"
 DIST_CHECKSUMS_SHA256="$(sha256_file "$DIST_DIR/checksums.txt")"
@@ -344,6 +345,7 @@ jq -n \
   --arg wallet_feed_projection "$WALLET_FEED_PROJECTION" \
   --arg wallet_feed_projection_sha256 "$WALLET_FEED_PROJECTION_SHA256" \
   --arg wallet_feed_projection_expected_sha256 "$WALLET_FEED_PROJECTION_EXPECTED_SHA256" \
+  --arg wallet_feed_proof_key_id "$WALLET_FEED_PROOF_KEY_ID" \
   '{
     timestamp: $timestamp,
     closure_tier: $closure_tier,
@@ -395,7 +397,8 @@ jq -n \
       feed_sha256: $wallet_feed_out_sha256,
       projection_path: $wallet_feed_projection,
       projection_sha256: $wallet_feed_projection_sha256,
-      projection_expected_sha256: $wallet_feed_projection_expected_sha256
+      projection_expected_sha256: $wallet_feed_projection_expected_sha256,
+      proof_key_id: $wallet_feed_proof_key_id
     }
   }' > "$ATTEST_PATH"
 

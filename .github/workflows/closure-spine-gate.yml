@@ -1,5 +1,8 @@
 name: Closure Spine Gate
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     paths:
@@ -34,6 +37,7 @@ jobs:
       MV_WALLET_FEED_SKIP: "0"
       MV_WALLET_FEED_KEY_ID: "ci-builder"
       MV_WALLET_FEED_PRIVATE_KEY_PEM: ${{ secrets.MV_WALLET_FEED_PRIVATE_KEY_PEM }}
+      MV_WALLET_FEED_KEY_ALLOWLIST: "fixtures/wallet-feed/key-allowlist.ci.json"
 
     steps:
       - name: Resolve repo defaults
@@ -80,6 +84,18 @@ jobs:
         run: |
           test -n "$MV_WALLET_FEED_PRIVATE_KEY_PEM"
 
+      - name: Guard no private keys in repo
+        working-directory: metaverse-kit
+        run: |
+          if git grep -n -e "-----BEGIN PRIVATE KEY-----" -- . ':(exclude).github/workflows/*.yml' ':(exclude).github/workflows/*.yaml'; then
+            echo "ERROR: private key material found in tracked files" >&2
+            exit 1
+          fi
+          if git ls-files | rg -n "\\.pem$|id_ed25519|private|secret|MV_WALLET_FEED_PRIVATE_KEY"; then
+            echo "ERROR: suspicious tracked key/secret file paths found" >&2
+            exit 1
+          fi
+
       - name: Run closure spine smoke in clean shell
         run: |
           env -i \
@@ -93,6 +109,7 @@ jobs:
             MV_WALLET_FEED_SKIP="$MV_WALLET_FEED_SKIP" \
             MV_WALLET_FEED_KEY_ID="$MV_WALLET_FEED_KEY_ID" \
             MV_WALLET_FEED_PRIVATE_KEY_PEM="$MV_WALLET_FEED_PRIVATE_KEY_PEM" \
+            MV_WALLET_FEED_KEY_ALLOWLIST="$MV_WALLET_FEED_KEY_ALLOWLIST" \
             bash --noprofile --norc -lc '
               cd "$GITHUB_WORKSPACE/metaverse-kit" && \
               LIGHT_GARDEN_DIR="$GITHUB_WORKSPACE/light-garden" \
@@ -113,6 +130,7 @@ jobs:
           jq -e '.determinism_sweep.path != null and .determinism_sweep.sha256 != ""' artifacts/gate-attestation.json >/dev/null
           jq -e '.wallet_feed.feed_sha256 != "" and .wallet_feed.projection_sha256 != ""' artifacts/gate-attestation.json >/dev/null
           jq -e '.wallet_feed.projection_sha256 == .wallet_feed.projection_expected_sha256' artifacts/gate-attestation.json >/dev/null
+          jq -e '.wallet_feed.proof_key_id == "ci-builder"' artifacts/gate-attestation.json >/dev/null
           jq -e '.metaverse_kit.dist_dir_policy == "latest" or .metaverse_kit.dist_dir_policy == "explicit"' artifacts/gate-attestation.json >/dev/null
 
       - name: Dump gate attestation on failure

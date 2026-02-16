@@ -1,0 +1,6 @@
+{
+  "keys": {
+    "dev-builder": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAVi0wmJUN8fUCFhTclVGSUKxjyBz5b2L/hrNjvv7N7vA=\n-----END PUBLIC KEY-----\n",
+    "ci-builder": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEACuFWEoifSOhXqfB/H2oFi+PprD945jb5mmFtdizmZo4=\n-----END PUBLIC KEY-----\n"
+  }
+}
