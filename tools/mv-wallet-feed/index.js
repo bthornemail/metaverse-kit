@@ -10,10 +10,9 @@ const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
 const DIR_RE = /^(in|out)$/;
 const UINT_RE = /^[0-9]+$/;
 const SIG_RE = /^ed25519:[A-Za-z0-9+/=]+$/;
+const SIGNATURE_INPUT = "canonical_body_bytes.v1";
 const DEFAULT_ALLOWLIST_PATH = "fixtures/wallet-feed/key-allowlist.json";
 const DEFAULT_KEY_ID = "dev-builder";
-
-const DEFAULT_PRIVATE_KEY_PEM = `-----BEGIN PRIVATE KEY-----\nMC4CAQAwBQYDK2VwBCIEIKnCB466M9g36K4Eo0jpQ3t7xvywUxHMWjLWXr68IQpY\n-----END PRIVATE KEY-----\n`;
 
 function die(msg) {
   console.error(`ERROR: ${msg}`);
@@ -82,6 +81,43 @@ function readAmountBaseUnits(v, ctx) {
   }
 }
 
+function envelopeBody(payload) {
+  return {
+    chain: payload.chain,
+    entity_id: payload.entity_id,
+    entity_type: payload.entity_type,
+    payload: payload.payload,
+    source: payload.source,
+    timestamp: payload.timestamp,
+    v: VERSION,
+  };
+}
+
+function requireSigningKeyPem() {
+  const fromEnv = process.env.MV_WALLET_FEED_PRIVATE_KEY_PEM;
+  if (fromEnv && fromEnv.trim().length > 0) return fromEnv;
+
+  const fromPath = process.env.MV_WALLET_FEED_PRIVATE_KEY_PATH;
+  if (fromPath && fromPath.trim().length > 0) {
+    return fs.readFile(path.resolve(process.cwd(), fromPath), "utf8");
+  }
+
+  die("missing signing key: set MV_WALLET_FEED_PRIVATE_KEY_PEM or MV_WALLET_FEED_PRIVATE_KEY_PATH");
+}
+
+async function loadSigningContext() {
+  const keyId = process.env.MV_WALLET_FEED_KEY_ID || DEFAULT_KEY_ID;
+  const privatePem = await requireSigningKeyPem();
+  let privateKey;
+  try {
+    privateKey = crypto.createPrivateKey(privatePem);
+  } catch (err) {
+    die(`invalid private key PEM: ${err.message || err}`);
+  }
+  const publicKeyPem = crypto.createPublicKey(privateKey).export({ type: "spki", format: "pem" }).toString();
+  return { keyId, privateKey, publicKeyPem };
+}
+
 async function loadKeyAllowlist() {
   const p = path.resolve(process.cwd(), process.env.MV_WALLET_FEED_KEY_ALLOWLIST || DEFAULT_ALLOWLIST_PATH);
   const raw = await fs.readFile(p, "utf8");
@@ -97,28 +133,23 @@ async function loadKeyAllowlist() {
   return parsed.keys;
 }
 
-function envelopeBody(payload) {
-  return {
-    chain: payload.chain,
-    entity_id: payload.entity_id,
-    entity_type: payload.entity_type,
-    payload: payload.payload,
-    source: payload.source,
-    timestamp: payload.timestamp,
-    v: VERSION,
-  };
-}
-
-async function signEnvelope(payload) {
+async function signEnvelope(payload, signingContext) {
   const body = envelopeBody(payload);
-  const digest = sha256Pref(Buffer.from(canonicalJson(body), "utf8"));
-  const keyId = process.env.MV_WALLET_FEED_KEY_ID || DEFAULT_KEY_ID;
-  const privatePem = process.env.MV_WALLET_FEED_PRIVATE_KEY_PEM || DEFAULT_PRIVATE_KEY_PEM;
-  const privateKey = crypto.createPrivateKey(privatePem);
-  const publicKey = crypto.createPublicKey(privateKey).export({ type: "spki", format: "pem" }).toString();
-  const signatureRaw = crypto.sign(null, Buffer.from(digest, "utf8"), privateKey);
+  const canonicalBodyBytes = Buffer.from(canonicalJson(body), "utf8");
+  const digest = sha256Pref(canonicalBodyBytes);
+  const signatureRaw = crypto.sign(null, canonicalBodyBytes, signingContext.privateKey);
   const signature = `ed25519:${signatureRaw.toString("base64")}`;
-  return { ...body, digest, proof: { key_id: keyId, signature, public_key: publicKey } };
+
+  return {
+    ...body,
+    digest,
+    proof: {
+      key_id: signingContext.keyId,
+      public_key: signingContext.publicKeyPem,
+      signature,
+      signature_input: SIGNATURE_INPUT,
+    },
+  };
 }
 
 function toEnvelope(e) {
@@ -184,14 +215,11 @@ function verifyEnvelopeSignature(env, allowlist) {
   if (pubPem !== allowlistedPublic) {
     die(`envelope public key mismatch for key_id: ${keyId}`);
   }
+
   const sigB64 = env.proof.signature.split(":", 2)[1];
   const sig = Buffer.from(sigB64, "base64");
-  const ok = crypto.verify(
-    null,
-    Buffer.from(env.digest, "utf8"),
-    crypto.createPublicKey(pubPem),
-    sig
-  );
+  const canonicalBodyBytes = Buffer.from(canonicalJson(envelopeBody(env)), "utf8");
+  const ok = crypto.verify(null, canonicalBodyBytes, crypto.createPublicKey(pubPem), sig);
   if (!ok) die(`envelope signature verify failed for key_id: ${keyId}`);
 }
 
@@ -209,8 +237,10 @@ function validateEnvelope(env, i, allowlist) {
   requireUIntString(String(env.timestamp), `${ctx}.timestamp`);
   if (!env.proof || typeof env.proof !== "object") die(`${ctx}.proof missing`);
   requireString(env.proof.key_id, `${ctx}.proof.key_id`);
-  requireString(env.proof.signature, `${ctx}.proof.signature`);
   requireString(env.proof.public_key, `${ctx}.proof.public_key`);
+  requireString(env.proof.signature, `${ctx}.proof.signature`);
+  requireString(env.proof.signature_input, `${ctx}.proof.signature_input`);
+  if (env.proof.signature_input !== SIGNATURE_INPUT) die(`${ctx}.proof.signature_input mismatch`);
   if (typeof env.payload !== "object" || !env.payload) die(`${ctx}.payload missing`);
   requireString(env.payload.address, `${ctx}.payload.address`);
   requireUIntString(String(env.payload.block), `${ctx}.payload.block`);
@@ -224,8 +254,8 @@ function validateEnvelope(env, i, allowlist) {
   if (!/^sha256:[0-9a-f]{64}$/.test(env.digest)) die(`${ctx}.digest invalid`);
   if (!SIG_RE.test(env.proof.signature)) die(`${ctx}.proof.signature invalid`);
 
-  const body = envelopeBody(env);
-  const gotDigest = sha256Pref(Buffer.from(canonicalJson(body), "utf8"));
+  const canonicalBodyBytes = Buffer.from(canonicalJson(envelopeBody(env)), "utf8");
+  const gotDigest = sha256Pref(canonicalBodyBytes);
   if (gotDigest !== env.digest) die(`${ctx}.digest mismatch`);
   verifyEnvelopeSignature(env, allowlist);
 }
@@ -272,11 +302,12 @@ async function main() {
 
   if (args.mode === "ingest") {
     if (!args.input || !args.out) die("ingest requires --input and --out");
+    const signingContext = await loadSigningContext();
     const lines = parseNdjson(await readText(args.input));
     const envelopes = [];
     for (const [i, line] of lines.entries()) {
       validateEvent(line, i);
-      envelopes.push(await signEnvelope(toEnvelope(line)));
+      envelopes.push(await signEnvelope(toEnvelope(line), signingContext));
     }
     const out = envelopes.map((e) => canonicalJson(e)).join("");
     await writeText(args.out, out);

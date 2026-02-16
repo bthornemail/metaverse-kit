@@ -182,6 +182,14 @@ if [[ "$MV_WALLET_FEED_SKIP" == "1" ]]; then
 elif [[ -f "$WALLET_FEED_FIXTURE" ]]; then
   mkdir -p "$WALLET_FEED_TMP_DIR"
   WALLET_FEED_TOOL="$ROOT_DIR/tools/mv-wallet-feed/index.js"
+  if [[ -z "${MV_WALLET_FEED_PRIVATE_KEY_PEM:-}" && -z "${MV_WALLET_FEED_PRIVATE_KEY_PATH:-}" ]]; then
+    echo "ERROR: wallet feed signing key missing; set MV_WALLET_FEED_PRIVATE_KEY_PEM or MV_WALLET_FEED_PRIVATE_KEY_PATH" >&2
+    exit 2
+  fi
+  if [[ -n "${MV_WALLET_FEED_PRIVATE_KEY_PATH:-}" && ! -f "${MV_WALLET_FEED_PRIVATE_KEY_PATH}" ]]; then
+    echo "ERROR: MV_WALLET_FEED_PRIVATE_KEY_PATH does not exist: ${MV_WALLET_FEED_PRIVATE_KEY_PATH}" >&2
+    exit 2
+  fi
   if [[ ! -f "$WALLET_FEED_EXPECTED_SHA_PATH" ]]; then
     echo "ERROR: wallet feed expected digest file missing: $WALLET_FEED_EXPECTED_SHA_PATH" >&2
     exit 2
