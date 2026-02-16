@@ -1,0 +1,106 @@
+name: Closure Spine Gate
+
+on:
+  pull_request:
+    paths:
+      - "scripts/closure-spine-smoke.sh"
+      - "package.json"
+      - ".github/workflows/closure-spine-gate.yml"
+      - "freeze/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "scripts/closure-spine-smoke.sh"
+      - "package.json"
+      - ".github/workflows/closure-spine-gate.yml"
+      - "freeze/**"
+  workflow_dispatch:
+
+jobs:
+  closure-spine-smoke:
+    runs-on: ubuntu-latest
+    env:
+      WORDNET_SIMILARITY_MODE: strict
+      CSERVER_RATE_LIMIT: "100"
+      LIGHT_GARDEN_REPO: ${{ vars.LIGHT_GARDEN_REPO }}
+      GEOMETRY_SPINE_REPO: ${{ vars.GEOMETRY_SPINE_REPO }}
+
+    steps:
+      - name: Resolve repo defaults
+        shell: bash
+        run: |
+          echo "LIGHT_GARDEN_REPO=${LIGHT_GARDEN_REPO:-${GITHUB_REPOSITORY_OWNER}/light-garden}" >> "$GITHUB_ENV"
+          echo "GEOMETRY_SPINE_REPO=${GEOMETRY_SPINE_REPO:-${GITHUB_REPOSITORY_OWNER}/geometry-spine}" >> "$GITHUB_ENV"
+
+      - name: Checkout metaverse-kit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: metaverse-kit
+
+      - name: Checkout light-garden
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.LIGHT_GARDEN_REPO }}
+          fetch-depth: 0
+          path: light-garden
+
+      - name: Checkout geometry-spine
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.GEOMETRY_SPINE_REPO }}
+          fetch-depth: 0
+          path: geometry-spine
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install metaverse-kit deps
+        working-directory: metaverse-kit
+        run: npm ci
+
+      - name: Install light-garden audit deps
+        working-directory: light-garden/audit
+        run: npm ci
+
+      - name: Run closure spine smoke in clean shell
+        run: |
+          env -i \
+            HOME="$HOME" \
+            PATH="$PATH" \
+            TERM="xterm" \
+            GITHUB_WORKSPACE="$GITHUB_WORKSPACE" \
+            WORDNET_SIMILARITY_MODE="$WORDNET_SIMILARITY_MODE" \
+            CSERVER_RATE_LIMIT="$CSERVER_RATE_LIMIT" \
+            bash --noprofile --norc -lc '
+              cd "$GITHUB_WORKSPACE/metaverse-kit" && \
+              LIGHT_GARDEN_DIR="$GITHUB_WORKSPACE/light-garden" \
+              GEOMETRY_SPINE_DIR="$GITHUB_WORKSPACE/geometry-spine" \
+              npm run -s closure:spine-smoke
+            '
+
+      - name: Assert attested repos are clean in CI
+        working-directory: metaverse-kit
+        run: |
+          test -f artifacts/gate-attestation.json
+          jq -e '.repos["metaverse-kit"].dirty == false' artifacts/gate-attestation.json >/dev/null
+          jq -e '.repos["light-garden"].dirty == false' artifacts/gate-attestation.json >/dev/null
+          jq -e '.repos["geometry-spine"].dirty == false' artifacts/gate-attestation.json >/dev/null
+
+      - name: Upload gate artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: closure-spine-gate-${{ github.run_id }}
+          if-no-files-found: warn
+          path: |
+            metaverse-kit/artifacts/gate-attestation*.json
+            metaverse-kit/dist/**/checksums.txt
+            metaverse-kit/dist/**/demo.bundle/manifest.json
+            metaverse-kit/dist/**/demo.bundle/integrity.sha256
+            light-garden/audit/artifacts/logs/*
+            light-garden/audit/artifacts/reports/*
+            light-garden/audit/results/latest/*

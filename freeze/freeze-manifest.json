@@ -1,0 +1,25 @@
+{
+  "freeze_label": "freeze-2026-02-16-a",
+  "created_at": "2026-02-16T20:12:34Z",
+  "repos": {
+    "metaverse-kit": {
+      "path": "/home/main/devops/metaverse-kit",
+      "commit": "ab7580dcf0d7957ae35ea84b7288362c1047b352",
+      "expected_tag": "freeze-2026-02-16-a"
+    },
+    "light-garden": {
+      "path": "/home/main/devops/light-garden",
+      "commit": "138a7877a156015527700ad5a3d88dbb5f7d4a0a",
+      "expected_tag": "freeze-2026-02-16-a"
+    },
+    "geometry-spine": {
+      "path": "/home/main/devops/geometry-spine",
+      "commit": "5187a7ea69d4852f5b27aec61030ae74641ef4da",
+      "expected_tag": "freeze-2026-02-16-a"
+    }
+  },
+  "gate_policy": {
+    "WORDNET_SIMILARITY_MODE": "strict",
+    "CSERVER_RATE_LIMIT": "100"
+  }
+}

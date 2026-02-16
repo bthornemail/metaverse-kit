@@ -1,0 +1,42 @@
+{
+  "timestamp": "2026-02-16T19:51:40Z",
+  "environment": {
+    "node_version": "v24.9.0",
+    "npm_version": "11.6.0",
+    "os_uname": "Linux 6.17.0-14-generic x86_64",
+    "libc_info": "ldd (Ubuntu GLIBC 2.39-0ubuntu8.7) 2.39\nn/a"
+  },
+  "repos": {
+    "metaverse-kit": {
+      "commit": "ab7580dcf0d7957ae35ea84b7288362c1047b352",
+      "dirty": true
+    },
+    "light-garden": {
+      "commit": "138a7877a156015527700ad5a3d88dbb5f7d4a0a",
+      "dirty": true
+    },
+    "geometry-spine": {
+      "commit": "5187a7ea69d4852f5b27aec61030ae74641ef4da",
+      "dirty": true
+    }
+  },
+  "authority": {
+    "gate_path": "/home/main/devops/geometry-spine/authority/gate/AuthorityProjection.hs",
+    "gate_sha256": "9b71aadc344cfb636382a495feda853bf79b89faafe96d88b8d6b5f8d3095482",
+    "strict": "true",
+    "class": "projection"
+  },
+  "light_garden": {
+    "validate_report": "/home/main/devops/light-garden/audit/artifacts/reports/audit-summary.json",
+    "validate_report_sha256": "c7f77c569f955ee9653f1daad8e7adb43d5509adcbb89010d92970cf97b268bf",
+    "wordnet_log": "/home/main/devops/light-garden/audit/artifacts/logs/2026-02-16T19-51-32-924Z-wordnet.log",
+    "c_server_log": "/home/main/devops/light-garden/audit/artifacts/logs/2026-02-16T19-51-32-930Z-c-server.log"
+  },
+  "metaverse_kit": {
+    "dist_dir": "dist/metaverse-kit-v0.1",
+    "checksums_txt_sha256": "cf57fdbb50c29035fe09552f32a18250b457ff7545a01a43d0b309768b7aed66",
+    "demo_bundle_manifest_sha256": "e16e1b741726726715bedac2c1e865998d64a76fd713d13e7990a07445559b28",
+    "demo_bundle_integrity_sha256": "562b851bf1c12c19918c9a773767578123ffa797b74d697d233d82da224e9baf",
+    "dist_tree_sha256": "f68c08c4ebce13fbd916dfb69932b96dae941ce5e5e1e41d51cb401262647541"
+  }
+}

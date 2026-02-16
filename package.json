@@ -51,6 +51,7 @@
     "external:tester-smoke": "bash scripts/external-tester-smoke.sh",
     "release:sign": "bash scripts/release-sign.sh",
     "release:verify-signatures": "bash scripts/release-verify-signatures.sh",
+    "closure:spine-smoke": "bash scripts/closure-spine-smoke.sh",
     "pretag:v0.1": "bash scripts/pretag-v0.1.sh",
     "narrative:project": "node tools/mv-narrative-state-project/index.js",
     "narrative:golden": "bash scripts/narrative-state-golden.sh",

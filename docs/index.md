@@ -17,6 +17,7 @@ A local-first, event-sourced metaverse toolkit with deterministic replay, multi-
 - SBOM and Provenance: `docs/SBOM_AND_PROVENANCE.md`
 - Release Roadmap: `docs/RELEASE_ROADMAP.md`
 - Public Release Plan: `docs/PUBLIC_RELEASE_PLAN.md`
+- Package Review Report: `docs/PACKAGE_REVIEW.md`
 - Reproducible Build Guide: `docs/REPRODUCIBLE_BUILD.md`
 - Narrative Portal Mode: `docs/NARRATIVE_PORTAL_MODE.md`
 - Wave16 Narrative State ABI: `docs/WAVE16_NARRATIVE_STATE_ABI.md`
