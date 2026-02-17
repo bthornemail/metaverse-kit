@@ -74,6 +74,10 @@ jobs:
           path: |
             light-garden/audit/results/bench/replay/latest/build-replay-federation.tgz
             light-garden/audit/results/bench/replay/latest/build-replay-check.json
+            light-garden/audit/results/bench/replay/latest/build-replay.canvas.json
+            light-garden/audit/results/bench/replay/latest/build-replay.canvasl
+            light-garden/audit/results/bench/replay/latest/build-replay.canvasl.check.json
+            light-garden/audit/results/bench/replay/latest/build-replay.canvasl.summary.json
             light-garden/audit/results/bench/replay/latest/build-replay-manifest.json
             light-garden/audit/results/bench/replay/latest/capabilities.json
             light-garden/audit/results/bench/replay/latest/index.json
@@ -148,6 +152,150 @@ jobs:
           path: |
             light-garden/audit/results/bench/replay/spine/latest/build-replay-federation.tgz
             light-garden/audit/results/bench/replay/spine/latest/build-replay-check.json
+            light-garden/audit/results/bench/replay/spine/latest/build-replay.canvas.json
+            light-garden/audit/results/bench/replay/spine/latest/build-replay.canvasl
+            light-garden/audit/results/bench/replay/spine/latest/build-replay.canvasl.check.json
+            light-garden/audit/results/bench/replay/spine/latest/build-replay.canvasl.summary.json
             light-garden/audit/results/bench/replay/spine/latest/build-replay-manifest.json
             light-garden/audit/results/bench/replay/spine/latest/capabilities.json
             light-garden/audit/results/bench/replay/spine/latest/index.json
+
+  visual-integrate-horiz:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      LIGHT_GARDEN_REPO: ${{ vars.LIGHT_GARDEN_REPO }}
+      WORDNET_SIMILARITY_MODE: strict
+      CSERVER_RATE_LIMIT: "100"
+
+    steps:
+      - name: Resolve repo defaults
+        shell: bash
+        run: |
+          echo "LIGHT_GARDEN_REPO=${LIGHT_GARDEN_REPO:-${GITHUB_REPOSITORY_OWNER}/light-garden}" >> "$GITHUB_ENV"
+
+      - name: Checkout light-garden
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.LIGHT_GARDEN_REPO }}
+          fetch-depth: 0
+          path: light-garden
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install light-garden audit deps
+        working-directory: light-garden/audit
+        run: npm ci
+
+      - name: Provision horizontal fixtures
+        run: |
+          mkdir -p light-garden/artifacts/horizontal
+          if [ ! -f light-garden/artifacts/horizontal/horiz-run.ndjson ]; then
+            printf '%s\n' \
+              '{"timestamp":"1970-01-01T00:00:00Z","event":"horiz.catalog.start","payload":{"source":"ci-fixture"}}' \
+              '{"timestamp":"1970-01-01T00:00:01Z","event":"horiz.repo.detected","payload":{"path":"fixture-repo","repo_type":"git","head":"fixture","dirty":false}}' \
+              '{"timestamp":"1970-01-01T00:00:02Z","event":"horiz.probe.end","payload":{"attempted":1,"probed":1,"soft_failed":0,"hard_break":false}}' \
+              > light-garden/artifacts/horizontal/horiz-run.ndjson
+          fi
+          if [ ! -f light-garden/artifacts/horizontal/position.json ]; then
+            cat > light-garden/artifacts/horizontal/position.json <<'JSON'
+            {
+              "schema_version": 1,
+              "phase": "probe",
+              "status": "ok",
+              "repo": "fixture-repo",
+              "last_successful_step": "fixture-repo",
+              "hard_break": false
+            }
+            JSON
+          fi
+          if [ ! -f light-garden/artifacts/horizontal/catalog.json ]; then
+            cat > light-garden/artifacts/horizontal/catalog.json <<'JSON'
+            {
+              "schema_version": 1,
+              "root": "ci-fixture",
+              "repo_count": 1,
+              "git_repo_count": 1,
+              "symlink_count": 0,
+              "repos": [
+                {
+                  "path": "fixture-repo",
+                  "abs_path": "/ci/fixture-repo",
+                  "repo_type": "git",
+                  "git": {
+                    "head": "fixture",
+                    "remote": null,
+                    "dirty": false
+                  }
+                }
+              ]
+            }
+            JSON
+          fi
+          if [ ! -f light-garden/artifacts/horizontal/probe.json ]; then
+            cat > light-garden/artifacts/horizontal/probe.json <<'JSON'
+            {
+              "schema_version": 1,
+              "root": "ci-fixture",
+              "repo_count": 1,
+              "attempted": 1,
+              "probed": 1,
+              "skipped_no_probe": 0,
+              "soft_failed": 0,
+              "hard_break": false,
+              "hard_break_reason": null,
+              "repos": []
+            }
+            JSON
+          fi
+
+      - name: Run visual integration (horiz)
+        working-directory: light-garden/audit
+        env:
+          SKIP_HORIZ_STRESS: "1"
+          HORIZ_ARTIFACT_ROOT: ../artifacts/horizontal
+        run: npm run -s visual:integrate:horiz
+
+      - name: Visual horiz summary
+        if: always()
+        run: |
+          CHECK="light-garden/audit/results/bench/replay/horiz/latest/build-replay-check.json"
+          INDEX="light-garden/audit/results/bench/replay/horiz/latest/index.json"
+          echo "## Visual Horiz Artifacts" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "$CHECK" ]; then
+            echo "- Verified: $(jq -r '(.patch_events == 0) and (.canon_sha256 != null) and (.patch_sha256 != null) and (.patched_sha256 != null)' "$CHECK")" >> "$GITHUB_STEP_SUMMARY"
+            echo "- canon_sha256: \`$(jq -r '.canon_sha256' "$CHECK")\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "- patch_sha256: \`$(jq -r '.patch_sha256' "$CHECK")\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "- patched_sha256: \`$(jq -r '.patched_sha256' "$CHECK")\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- check json missing" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ -f "$INDEX" ]; then
+            echo "- index.json: present" >> "$GITHUB_STEP_SUMMARY"
+            echo "- bundle_sha256: \`$(jq -r '.artifacts.bundle.sha256 // "sha256:missing"' "$INDEX")\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- index.json: missing" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload visual horiz artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-integrate-horiz-${{ github.run_id }}
+          if-no-files-found: warn
+          path: |
+            light-garden/audit/results/bench/replay/horiz/latest/build-replay-federation.tgz
+            light-garden/audit/results/bench/replay/horiz/latest/build-replay-check.json
+            light-garden/audit/results/bench/replay/horiz/latest/build-replay.canvas.json
+            light-garden/audit/results/bench/replay/horiz/latest/build-replay.canvasl
+            light-garden/audit/results/bench/replay/horiz/latest/build-replay.canvasl.check.json
+            light-garden/audit/results/bench/replay/horiz/latest/build-replay.canvasl.summary.json
+            light-garden/audit/results/bench/replay/horiz/latest/build-replay-manifest.json
+            light-garden/audit/results/bench/replay/horiz/latest/capabilities.json
+            light-garden/audit/results/bench/replay/horiz/latest/index.json
+            light-garden/audit/results/bench/replay/horiz/latest/position.json
+            light-garden/audit/results/bench/replay/horiz/latest/catalog.json
+            light-garden/audit/results/bench/replay/horiz/latest/probe.json
