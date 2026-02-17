@@ -299,3 +299,474 @@ jobs:
             light-garden/audit/results/bench/replay/horiz/latest/position.json
             light-garden/audit/results/bench/replay/horiz/latest/catalog.json
             light-garden/audit/results/bench/replay/horiz/latest/probe.json
+
+  visual-integrate-universe:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      LIGHT_GARDEN_REPO: ${{ vars.LIGHT_GARDEN_REPO }}
+      AUTOMATON_REPO: ${{ vars.AUTOMATON_REPO }}
+
+    steps:
+      - name: Resolve repo defaults
+        shell: bash
+        run: |
+          echo "LIGHT_GARDEN_REPO=${LIGHT_GARDEN_REPO:-${GITHUB_REPOSITORY_OWNER}/light-garden}" >> "$GITHUB_ENV"
+          echo "AUTOMATON_REPO=${AUTOMATON_REPO:-${GITHUB_REPOSITORY_OWNER}/automaton}" >> "$GITHUB_ENV"
+
+      - name: Checkout light-garden
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.LIGHT_GARDEN_REPO }}
+          fetch-depth: 0
+          path: light-garden
+
+      - name: Checkout automaton
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.AUTOMATON_REPO }}
+          fetch-depth: 0
+          path: automaton
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install light-garden audit deps
+        working-directory: light-garden/audit
+        run: npm ci
+
+      - name: Run universe activation
+        working-directory: light-garden/audit
+        run: npm run -s universe:activate
+
+      - name: Visual universe summary
+        if: always()
+        shell: bash
+        run: |
+          CHECK="light-garden/audit/results/bench/replay/universe/latest/universe-check.json"
+          GATE="light-garden/audit/results/bench/replay/universe/latest/portal-gate.json"
+          echo "## Visual Universe Artifacts" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "$CHECK" ]; then
+            echo "- universe pass: $(jq -r '.pass' "$CHECK")" >> "$GITHUB_STEP_SUMMARY"
+            echo "- universe id: \`$(jq -r '.universe_id' "$CHECK")\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "- run ndjson sha256: \`$(jq -r '.outputs.universe_run_ndjson.sha256' "$CHECK")\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- universe-check.json missing" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ -f "$GATE" ]; then
+            echo "- portal gate pass: $(jq -r '.pass' "$GATE")" >> "$GITHUB_STEP_SUMMARY"
+            echo "- optional bridge validated: $(jq -r '.optional_bridge_validated' "$GATE")" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- portal-gate.json missing" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload visual universe artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-integrate-universe-${{ github.run_id }}
+          if-no-files-found: warn
+          path: |
+            light-garden/artifacts/universe/latest/universe-run.ndjson
+            light-garden/audit/results/bench/replay/universe/latest/build-replay-federation.tgz
+            light-garden/audit/results/bench/replay/universe/latest/build-replay-check.json
+            light-garden/audit/results/bench/replay/universe/latest/build-replay.canvas.json
+            light-garden/audit/results/bench/replay/universe/latest/build-replay.canvasl
+            light-garden/audit/results/bench/replay/universe/latest/build-replay.canvasl.check.json
+            light-garden/audit/results/bench/replay/universe/latest/build-replay.canvasl.summary.json
+            light-garden/audit/results/bench/replay/universe/latest/build-replay-manifest.json
+            light-garden/audit/results/bench/replay/universe/latest/capabilities.json
+            light-garden/audit/results/bench/replay/universe/latest/index.json
+            light-garden/audit/results/bench/replay/universe/latest/universe-manifest.json
+            light-garden/audit/results/bench/replay/universe/latest/universe-check.json
+            light-garden/audit/results/bench/replay/universe/latest/universe-run.ndjson
+            light-garden/audit/results/bench/replay/universe/latest/portal-gate.json
+            light-garden/audit/results/bench/replay/universe/latest/portal-gate.ndjson
+            light-garden/audit/results/bench/replay/universe/latest/portal-scene.json
+            light-garden/audit/results/bench/replay/universe/latest/portal-bridge.check.json
+
+  visual-integrate-vm:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      TETRAGRAMMATRON_REPO: ${{ vars.TETRAGRAMMATRON_REPO }}
+      BICF_REPO: ${{ vars.BICF_REPO }}
+
+    steps:
+      - name: Resolve repo defaults
+        shell: bash
+        run: |
+          echo "TETRAGRAMMATRON_REPO=${TETRAGRAMMATRON_REPO:-${GITHUB_REPOSITORY_OWNER}/tetragrammatron-os}" >> "$GITHUB_ENV"
+          echo "BICF_REPO=${BICF_REPO:-${GITHUB_REPOSITORY_OWNER}/boundary-interior-combinatorial-framework}" >> "$GITHUB_ENV"
+
+      - name: Checkout tetragrammatron-os
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.TETRAGRAMMATRON_REPO }}
+          fetch-depth: 0
+          path: tetragrammatron-os
+
+      - name: Checkout boundary-interior-combinatorial-framework
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.BICF_REPO }}
+          fetch-depth: 0
+          path: boundary-interior-combinatorial-framework
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install tetragrammatron-os deps
+        working-directory: tetragrammatron-os
+        run: npm ci
+
+      - name: Install BICF deps
+        working-directory: boundary-interior-combinatorial-framework
+        run: npm ci
+
+      - name: Run VM integration lane
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --prefix tetragrammatron-os run -s vm:test
+          npm --prefix tetragrammatron-os run -s vm:test:determinism
+          npm --prefix boundary-interior-combinatorial-framework run -s canisa:test
+          npm --prefix boundary-interior-combinatorial-framework run -s canisa:test:determinism
+
+          mkdir -p artifacts/vm/latest
+
+          TVM="tetragrammatron-os/artifacts/vm/can-vm/can-vm-check.json"
+          BVM="boundary-interior-combinatorial-framework/artifacts/vm/canisa/canisa-check.json"
+
+          # Unified VM lane stream must include both runtime traces.
+          cat \
+            tetragrammatron-os/artifacts/vm/can-vm/can-vm-run.ndjson \
+            boundary-interior-combinatorial-framework/artifacts/vm/canisa/canisa-run.ndjson \
+            > artifacts/vm/latest/vm-run.ndjson
+
+          VM_PASS=true
+          if [ "$(jq -r '.pass' "$TVM")" != "true" ] || [ "$(jq -r '.pass' "$BVM")" != "true" ]; then
+            VM_PASS=false
+          fi
+
+          VM_RUN_SHA="sha256:$(sha256sum artifacts/vm/latest/vm-run.ndjson | awk '{print $1}')"
+
+          cat > artifacts/vm/latest/vm-check.json <<JSON
+          {
+            "schema_version": 1,
+            "lane": "vm",
+            "pass": $VM_PASS,
+            "inputs": {
+              "can_vm_check": "$(jq -r '.ndjson_sha256' "$TVM")",
+              "canisa_check": "$(jq -r '.ndjson_sha256' "$BVM")"
+            },
+            "outputs": {
+              "vm-run.ndjson": "$VM_RUN_SHA"
+            }
+          }
+          JSON
+
+          VM_CHECK_SHA="sha256:$(sha256sum artifacts/vm/latest/vm-check.json | awk '{print $1}')"
+          cat > artifacts/vm/latest/vm-artifacts-manifest.json <<JSON
+          {
+            "schema_version": 1,
+            "lane": "vm",
+            "outputs": {
+              "vm-run.ndjson": { "path": "artifacts/vm/latest/vm-run.ndjson", "sha256": "$VM_RUN_SHA" },
+              "vm-check.json": { "path": "artifacts/vm/latest/vm-check.json", "sha256": "$VM_CHECK_SHA" }
+            }
+          }
+          JSON
+
+          # Keep signal fail-closed while job remains non-gating via continue-on-error.
+          test "$VM_PASS" = "true"
+
+      - name: VM summary
+        if: always()
+        shell: bash
+        run: |
+          TVM="tetragrammatron-os/artifacts/vm/can-vm/can-vm-check.json"
+          BVM="boundary-interior-combinatorial-framework/artifacts/vm/canisa/canisa-check.json"
+          VM="artifacts/vm/latest/vm-check.json"
+          echo "## Visual VM Artifacts" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "$VM" ]; then
+            echo "- vm lane pass: $(jq -r '.pass' "$VM")" >> "$GITHUB_STEP_SUMMARY"
+            echo "- vm-run sha256: \`$(jq -r '.outputs[\"vm-run.ndjson\"]' "$VM")\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- vm lane check missing" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ -f "$TVM" ]; then
+            echo "- can-vm pass: $(jq -r '.pass' "$TVM")" >> "$GITHUB_STEP_SUMMARY"
+            echo "- can-vm ndjson_sha256: \`$(jq -r '.ndjson_sha256' "$TVM")\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- can-vm check missing" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ -f "$BVM" ]; then
+            echo "- canisa pass: $(jq -r '.pass' "$BVM")" >> "$GITHUB_STEP_SUMMARY"
+            echo "- canisa ndjson_sha256: \`$(jq -r '.ndjson_sha256' "$BVM")\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- canisa check missing" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload VM artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-integrate-vm-${{ github.run_id }}
+          if-no-files-found: warn
+          path: |
+            artifacts/vm/latest/vm-run.ndjson
+            artifacts/vm/latest/vm-check.json
+            artifacts/vm/latest/vm-artifacts-manifest.json
+            tetragrammatron-os/artifacts/vm/can-vm/can-vm-check.json
+            tetragrammatron-os/artifacts/vm/can-vm/can-vm-run.ndjson
+            boundary-interior-combinatorial-framework/artifacts/vm/canisa/canisa-check.json
+            boundary-interior-combinatorial-framework/artifacts/vm/canisa/canisa-run.ndjson
+
+  visual-integrate-vmbench:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      LIGHT_GARDEN_REPO: ${{ vars.LIGHT_GARDEN_REPO }}
+      TETRAGRAMMATRON_REPO: ${{ vars.TETRAGRAMMATRON_REPO }}
+      BICF_REPO: ${{ vars.BICF_REPO }}
+      AUTOMATON_REPO: ${{ vars.AUTOMATON_REPO }}
+      MIND_GIT_VR_ECOSYSTEM_REPO: ${{ vars.MIND_GIT_VR_ECOSYSTEM_REPO }}
+
+    steps:
+      - name: Resolve repo defaults
+        shell: bash
+        run: |
+          echo "LIGHT_GARDEN_REPO=${LIGHT_GARDEN_REPO:-${GITHUB_REPOSITORY_OWNER}/light-garden}" >> "$GITHUB_ENV"
+          echo "TETRAGRAMMATRON_REPO=${TETRAGRAMMATRON_REPO:-${GITHUB_REPOSITORY_OWNER}/tetragrammatron-os}" >> "$GITHUB_ENV"
+          echo "BICF_REPO=${BICF_REPO:-${GITHUB_REPOSITORY_OWNER}/boundary-interior-combinatorial-framework}" >> "$GITHUB_ENV"
+          echo "AUTOMATON_REPO=${AUTOMATON_REPO:-${GITHUB_REPOSITORY_OWNER}/automaton}" >> "$GITHUB_ENV"
+          echo "MIND_GIT_VR_ECOSYSTEM_REPO=${MIND_GIT_VR_ECOSYSTEM_REPO:-${GITHUB_REPOSITORY_OWNER}/mind-git-vr-ecosystem}" >> "$GITHUB_ENV"
+
+      - name: Checkout light-garden
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.LIGHT_GARDEN_REPO }}
+          fetch-depth: 0
+          path: light-garden
+
+      - name: Checkout tetragrammatron-os
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.TETRAGRAMMATRON_REPO }}
+          fetch-depth: 0
+          path: tetragrammatron-os
+
+      - name: Checkout boundary-interior-combinatorial-framework
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.BICF_REPO }}
+          fetch-depth: 0
+          path: boundary-interior-combinatorial-framework
+
+      - name: Checkout automaton
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.AUTOMATON_REPO }}
+          fetch-depth: 0
+          path: automaton
+
+      - name: Checkout mind-git-vr-ecosystem
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.MIND_GIT_VR_ECOSYSTEM_REPO }}
+          fetch-depth: 0
+          path: mind-git-vr-ecosystem
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install tetragrammatron-os deps
+        working-directory: tetragrammatron-os
+        run: npm ci
+
+      - name: Install BICF deps
+        working-directory: boundary-interior-combinatorial-framework
+        run: npm ci
+
+      - name: Install light-garden audit deps
+        working-directory: light-garden/audit
+        run: npm ci
+
+      - name: Run VM benchmark lane
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --prefix tetragrammatron-os run -s vm:bench
+          npm --prefix boundary-interior-combinatorial-framework run -s canisa:bench
+
+          mkdir -p artifacts/vm/latest
+
+          TVM="tetragrammatron-os/artifacts/vm/can-vm/can-vm-bench.json"
+          BVM="boundary-interior-combinatorial-framework/artifacts/vm/canisa/canisa-bench.json"
+
+          cat \
+            tetragrammatron-os/artifacts/vm/can-vm/can-vm-bench.ndjson \
+            boundary-interior-combinatorial-framework/artifacts/vm/canisa/canisa-bench.ndjson \
+            > artifacts/vm/latest/vm-bench.ndjson
+
+          VM_PASS=true
+          if [ "$(jq -r '.pass' "$TVM")" != "true" ] || [ "$(jq -r '.pass' "$BVM")" != "true" ]; then
+            VM_PASS=false
+          fi
+
+          VM_BENCH_SHA="sha256:$(sha256sum artifacts/vm/latest/vm-bench.ndjson | awk '{print $1}')"
+
+          cat > artifacts/vm/latest/vm-bench.json <<JSON
+          {
+            "schema_version": 1,
+            "lane": "vm-bench",
+            "pass": $VM_PASS,
+            "runtimes": {
+              "can_vm": $(cat "$TVM"),
+              "canisa_mvp": $(cat "$BVM")
+            },
+            "artifacts": {
+              "vm-bench.ndjson": "$VM_BENCH_SHA"
+            }
+          }
+          JSON
+
+          VM_BENCH_JSON_SHA="sha256:$(sha256sum artifacts/vm/latest/vm-bench.json | awk '{print $1}')"
+          cat > artifacts/vm/latest/vm-bench.check.json <<JSON
+          {
+            "schema_version": 1,
+            "lane": "vm-bench",
+            "pass": $VM_PASS,
+            "structure_ok": true,
+            "fixture_digests": {
+              "can_vm_runner_sha256": "$(jq -r '.artifacts.runner_sha256 // \"sha256:missing\"' "$TVM")",
+              "canisa_runner_sha256": "$(jq -r '.artifacts.runner_sha256 // \"sha256:missing\"' "$BVM")"
+            },
+            "output_digests": {
+              "vm-bench.ndjson": "$VM_BENCH_SHA",
+              "vm-bench.json": "$VM_BENCH_JSON_SHA"
+            }
+          }
+          JSON
+
+          test "$VM_PASS" = "true"
+
+      - name: Render vmbench replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p light-garden/artifacts/vm/latest
+          cp artifacts/vm/latest/vm-bench.ndjson light-garden/artifacts/vm/latest/vm-bench.ndjson
+          cp artifacts/vm/latest/vm-bench.json light-garden/artifacts/vm/latest/vm-bench.json
+          cp artifacts/vm/latest/vm-bench.check.json light-garden/artifacts/vm/latest/vm-bench.check.json
+
+          npm --prefix light-garden/audit run -s replay:vmbench
+          npm --prefix light-garden/audit run -s replay:patch:check -- \
+            --canon results/bench/replay/vmbench/latest/build-replay.ndjson \
+            --patch results/bench/replay/vmbench/latest/build-replay.patch.ndjson \
+            --out results/bench/replay/vmbench/latest/build-replay.patched.ndjson \
+            > light-garden/audit/results/bench/replay/vmbench/latest/build-replay-check.json
+          node light-garden/audit/scripts/emit-capabilities.js \
+            --out light-garden/audit/results/bench/replay/vmbench/latest/capabilities.json
+          node light-garden/audit/scripts/write-visual-index.js \
+            --lane vmbench \
+            --dir light-garden/audit/results/bench/replay/vmbench/latest \
+            --out light-garden/audit/results/bench/replay/vmbench/latest/index.json
+          cp artifacts/vm/latest/vm-bench.json light-garden/audit/results/bench/replay/vmbench/latest/vm-bench.json
+          cp artifacts/vm/latest/vm-bench.check.json light-garden/audit/results/bench/replay/vmbench/latest/vm-bench.check.json
+          bash light-garden/audit/results/bench/replay/vmbench/latest/export-federation-bundle.sh
+
+      - name: Portal bridge + portal gate (vmbench)
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          REPLAY_DIR="light-garden/audit/results/bench/replay/vmbench/latest"
+
+          node mind-git-vr-ecosystem/church-metaverse/scripts/ndjson-svg-vr-bridge.mjs \
+            --ndjson "${REPLAY_DIR}/build-replay.ndjson" \
+            --svg "${REPLAY_DIR}/build-replay.svg" \
+            --out-dir "${REPLAY_DIR}"
+
+          npm --prefix automaton run -s portal:gate -- \
+            --bundle "${REPLAY_DIR}" \
+            --out "${REPLAY_DIR}" \
+            --portal-scene portal-scene.json \
+            --portal-bridge-check portal-bridge.check.json
+
+          PASS="$(jq -r '.pass' "${REPLAY_DIR}/portal-gate.json")"
+          BRIDGE_OK="$(jq -r '.optional_bridge_validated' "${REPLAY_DIR}/portal-gate.json")"
+          ENTITIES="$(jq -r '.counts.entities' "${REPLAY_DIR}/portal-bridge.check.json")"
+          FAILURES="$(jq -r '(.failures // []) | if length==0 then "none" else join(" | ") end' "${REPLAY_DIR}/portal-gate.json")"
+
+          echo "## Portal Gate (vmbench)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- pass: ${PASS}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- optional_bridge_validated: ${BRIDGE_OK}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- portal-scene entities: ${ENTITIES}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- failures: ${FAILURES}" >> "$GITHUB_STEP_SUMMARY"
+
+          test "${PASS}" = "true"
+
+      - name: VM bench summary
+        if: always()
+        shell: bash
+        run: |
+          BENCH="artifacts/vm/latest/vm-bench.json"
+          CHECK="artifacts/vm/latest/vm-bench.check.json"
+          echo "## Visual VM Bench Artifacts" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "$CHECK" ]; then
+            echo "- vmbench pass: $(jq -r '.pass' "$CHECK")" >> "$GITHUB_STEP_SUMMARY"
+            echo "- vmbench ndjson sha256: \`$(jq -r '.output_digests[\"vm-bench.ndjson\"]' "$CHECK")\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- vmbench check missing" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ -f "$BENCH" ]; then
+            echo "- can-vm ops/sec: \`$(jq -r '.runtimes.can_vm.exec_ns.ops_per_sec // "n/a"' "$BENCH")\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "- canisa ops/sec: \`$(jq -r '.runtimes.canisa_mvp.exec_ns.ops_per_sec // "n/a"' "$BENCH")\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "- vmbench replay: \`light-garden/audit/results/bench/replay/vmbench/latest\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- vmbench summary missing" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload VM bench artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-integrate-vmbench-${{ github.run_id }}
+          if-no-files-found: warn
+          path: |
+            artifacts/vm/latest/vm-bench.ndjson
+            artifacts/vm/latest/vm-bench.json
+            artifacts/vm/latest/vm-bench.check.json
+            tetragrammatron-os/artifacts/vm/can-vm/can-vm-bench.ndjson
+            tetragrammatron-os/artifacts/vm/can-vm/can-vm-bench.json
+            boundary-interior-combinatorial-framework/artifacts/vm/canisa/canisa-bench.ndjson
+            boundary-interior-combinatorial-framework/artifacts/vm/canisa/canisa-bench.json
+            light-garden/audit/results/bench/replay/vmbench/latest/build-replay.html
+            light-garden/audit/results/bench/replay/vmbench/latest/build-replay.svg
+            light-garden/audit/results/bench/replay/vmbench/latest/build-replay.ndjson
+            light-garden/audit/results/bench/replay/vmbench/latest/build-replay.canvas.json
+            light-garden/audit/results/bench/replay/vmbench/latest/build-replay.canvasl
+            light-garden/audit/results/bench/replay/vmbench/latest/build-replay.canvasl.check.json
+            light-garden/audit/results/bench/replay/vmbench/latest/build-replay.canvasl.summary.json
+            light-garden/audit/results/bench/replay/vmbench/latest/build-replay-manifest.json
+            light-garden/audit/results/bench/replay/vmbench/latest/build-replay-check.json
+            light-garden/audit/results/bench/replay/vmbench/latest/index.json
+            light-garden/audit/results/bench/replay/vmbench/latest/capabilities.json
+            light-garden/audit/results/bench/replay/vmbench/latest/build-replay-federation.tgz
+            light-garden/audit/results/bench/replay/vmbench/latest/CONSUME.md
+            light-garden/audit/results/bench/replay/vmbench/latest/vm-bench.json
+            light-garden/audit/results/bench/replay/vmbench/latest/vm-bench.check.json
+            light-garden/audit/results/bench/replay/vmbench/latest/portal-scene.json
+            light-garden/audit/results/bench/replay/vmbench/latest/portal-overlay.svg
+            light-garden/audit/results/bench/replay/vmbench/latest/portal-bridge.check.json
+            light-garden/audit/results/bench/replay/vmbench/latest/portal-gate.json
+            light-garden/audit/results/bench/replay/vmbench/latest/portal-gate.ndjson
