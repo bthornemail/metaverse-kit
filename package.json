@@ -45,6 +45,8 @@
     "mv-verify-demo": "node tools/mv-verify-demo/index.js",
     "waveform:render": "node scripts/render-waveform.js",
     "waveform:render:test": "node scripts/test-waveform-render.js",
+    "waveform:render:verify": "node scripts/verify-waveform-render.js",
+    "waveform:render:verify:test": "node scripts/test-waveform-render-verify.js",
     "check:portal-contract": "bash scripts/portal-contract-guard.sh",
     "check:active-key": "bash scripts/check-active-key.sh",
     "release:pack": "bash scripts/release-pack.sh",
