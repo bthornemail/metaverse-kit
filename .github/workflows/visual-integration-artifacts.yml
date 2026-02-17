@@ -52,7 +52,7 @@ jobs:
           INDEX="light-garden/audit/results/bench/replay/latest/index.json"
           echo "## Visual Bench Artifacts" >> "$GITHUB_STEP_SUMMARY"
           if [ -f "$CHECK" ]; then
-            echo "- Verified: $(jq -r '.patch_events == 0' "$CHECK")" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Verified: $(jq -r '(.patch_events == 0) and (.canon_sha256 != null) and (.patch_sha256 != null) and (.patched_sha256 != null)' "$CHECK")" >> "$GITHUB_STEP_SUMMARY"
             echo "- canon_sha256: \`$(jq -r '.canon_sha256' "$CHECK")\`" >> "$GITHUB_STEP_SUMMARY"
             echo "- patch_sha256: \`$(jq -r '.patch_sha256' "$CHECK")\`" >> "$GITHUB_STEP_SUMMARY"
             echo "- patched_sha256: \`$(jq -r '.patched_sha256' "$CHECK")\`" >> "$GITHUB_STEP_SUMMARY"
@@ -126,7 +126,7 @@ jobs:
           INDEX="light-garden/audit/results/bench/replay/spine/latest/index.json"
           echo "## Visual Spine Artifacts" >> "$GITHUB_STEP_SUMMARY"
           if [ -f "$CHECK" ]; then
-            echo "- Verified: $(jq -r '.patch_events == 0' "$CHECK")" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Verified: $(jq -r '(.patch_events == 0) and (.canon_sha256 != null) and (.patch_sha256 != null) and (.patched_sha256 != null)' "$CHECK")" >> "$GITHUB_STEP_SUMMARY"
             echo "- canon_sha256: \`$(jq -r '.canon_sha256' "$CHECK")\`" >> "$GITHUB_STEP_SUMMARY"
             echo "- patch_sha256: \`$(jq -r '.patch_sha256' "$CHECK")\`" >> "$GITHUB_STEP_SUMMARY"
             echo "- patched_sha256: \`$(jq -r '.patched_sha256' "$CHECK")\`" >> "$GITHUB_STEP_SUMMARY"
