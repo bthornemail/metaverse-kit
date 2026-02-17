@@ -1,23 +1,24 @@
 {
-  "timestamp": "2026-02-16T19:51:40Z",
+  "timestamp": "2026-02-16T22:26:52Z",
+  "closure_tier": "pr-fast",
   "environment": {
     "node_version": "v24.9.0",
     "npm_version": "11.6.0",
     "os_uname": "Linux 6.17.0-14-generic x86_64",
-    "libc_info": "ldd (Ubuntu GLIBC 2.39-0ubuntu8.7) 2.39\nn/a"
+    "libc_info": "glibc 2.39"
   },
   "repos": {
     "metaverse-kit": {
-      "commit": "ab7580dcf0d7957ae35ea84b7288362c1047b352",
+      "commit": "70a897a6c349d19926951f8aeb8a162016ad7d1e",
       "dirty": true
     },
     "light-garden": {
-      "commit": "138a7877a156015527700ad5a3d88dbb5f7d4a0a",
+      "commit": "237c6da230cf59ea470e5eb1671615a97e578eea",
       "dirty": true
     },
     "geometry-spine": {
-      "commit": "5187a7ea69d4852f5b27aec61030ae74641ef4da",
-      "dirty": true
+      "commit": "90e3315f60d2b37209b95c937f78afc5ae89d9da",
+      "dirty": false
     }
   },
   "authority": {
@@ -26,17 +27,38 @@
     "strict": "true",
     "class": "projection"
   },
+  "gate_policy": {
+    "WORDNET_SIMILARITY_MODE": "strict",
+    "CSERVER_RATE_LIMIT": "100"
+  },
   "light_garden": {
     "validate_report": "/home/main/devops/light-garden/audit/artifacts/reports/audit-summary.json",
-    "validate_report_sha256": "c7f77c569f955ee9653f1daad8e7adb43d5509adcbb89010d92970cf97b268bf",
-    "wordnet_log": "/home/main/devops/light-garden/audit/artifacts/logs/2026-02-16T19-51-32-924Z-wordnet.log",
-    "c_server_log": "/home/main/devops/light-garden/audit/artifacts/logs/2026-02-16T19-51-32-930Z-c-server.log"
+    "validate_report_sha256": "61ff33b9786c6188ea0d7a2d5cd429644a6edfce2e8ff6d4e89295550c06b976",
+    "wordnet_log": "/home/main/devops/light-garden/audit/artifacts/logs/2026-02-16T22-26-44-043Z-wordnet.log",
+    "c_server_log": "/home/main/devops/light-garden/audit/artifacts/logs/2026-02-16T22-26-44-055Z-c-server.log"
   },
   "metaverse_kit": {
     "dist_dir": "dist/metaverse-kit-v0.1",
+    "dist_dir_policy": "latest",
     "checksums_txt_sha256": "cf57fdbb50c29035fe09552f32a18250b457ff7545a01a43d0b309768b7aed66",
     "demo_bundle_manifest_sha256": "e16e1b741726726715bedac2c1e865998d64a76fd713d13e7990a07445559b28",
     "demo_bundle_integrity_sha256": "562b851bf1c12c19918c9a773767578123ffa797b74d697d233d82da224e9baf",
     "dist_tree_sha256": "f68c08c4ebce13fbd916dfb69932b96dae941ce5e5e1e41d51cb401262647541"
+  },
+  "determinism_sweep": {
+    "path": "/home/main/devops/metaverse-kit/artifacts/determinism-sweep.txt",
+    "sha256": "c0c2b90cbc3b30fb684a5743a05f98be67bb6d59de95a64d34878d5c13496f6b",
+    "status": "skipped-pr-fast",
+    "iterations": 1
+  },
+  "wallet_feed": {
+    "fixture_path": "/home/main/devops/metaverse-kit/fixtures/wallet-feed/golden-wallet.ndjson",
+    "fixture_sha256": "48194d9215ad4640e5c5da1114c88165d2378c118055ea66578449b0955b8c63",
+    "feed_path": "/home/main/devops/metaverse-kit/artifacts/wallet-feed/golden-wallet.feed.ndjson",
+    "feed_sha256": "2719c74e0730ca4286100bb304decc6b349443bbd898272bdfbadcb111bf5870",
+    "projection_path": "/home/main/devops/metaverse-kit/artifacts/wallet-feed/golden-wallet.projection.json",
+    "projection_sha256": "7251c8effb40e308317480e4213438a25e6c2b3bedb190003a8d64edaee84af7",
+    "projection_expected_sha256": "7251c8effb40e308317480e4213438a25e6c2b3bedb190003a8d64edaee84af7",
+    "proof_key_id": "dev-builder"
   }
 }
