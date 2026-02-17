@@ -123,6 +123,31 @@ jobs:
         working-directory: light-garden/audit
         run: npm run -s visual:integrate:spine
 
+      - name: Waveform lane (spine)
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          REPLAY_DIR="light-garden/audit/results/bench/replay/spine/latest"
+
+          # Projection-only: emits waveform artifacts into the replay dir.
+          node light-garden/audit/scripts/run-waveform-analysis.js \
+            --in "${REPLAY_DIR}/build-replay.ndjson" \
+            --out-dir "${REPLAY_DIR}" \
+            --allow-cabal false \
+            --max-points 200 \
+            --timeout 15000 \
+            --require false
+
+          WF_CHECK="${REPLAY_DIR}/waveform.check.json"
+          if [ -f "$WF_CHECK" ]; then
+            echo "## Waveform Lane (spine)" >> "$GITHUB_STEP_SUMMARY"
+            echo "- pass: $(jq -r '.pass' "$WF_CHECK")" >> "$GITHUB_STEP_SUMMARY"
+            echo "- tool: $(jq -r '.tool.kind // \"unknown\"' "$WF_CHECK")" >> "$GITHUB_STEP_SUMMARY"
+            echo "- failures: $(jq -r '(.failures // []) | if length==0 then \"none\" else join(\" | \") end' "$WF_CHECK")" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Portal bridge + portal gate (spine)
         if: always()
         shell: bash
@@ -196,6 +221,10 @@ jobs:
             light-garden/audit/results/bench/replay/spine/latest/portal-bridge.check.json
             light-garden/audit/results/bench/replay/spine/latest/portal-gate.json
             light-garden/audit/results/bench/replay/spine/latest/portal-gate.ndjson
+            light-garden/audit/results/bench/replay/spine/latest/waveform-points.txt
+            light-garden/audit/results/bench/replay/spine/latest/waveform-summary.json
+            light-garden/audit/results/bench/replay/spine/latest/waveform.check.json
+            light-garden/audit/results/bench/replay/spine/latest/waveform-analysis.ndjson
 
   visual-integrate-horiz:
     runs-on: ubuntu-latest
@@ -369,6 +398,30 @@ jobs:
         working-directory: light-garden/audit
         run: npm run -s universe:activate
 
+      - name: Waveform lane (universe)
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          REPLAY_DIR="light-garden/audit/results/bench/replay/universe/latest"
+
+          node light-garden/audit/scripts/run-waveform-analysis.js \
+            --in "${REPLAY_DIR}/build-replay.ndjson" \
+            --out-dir "${REPLAY_DIR}" \
+            --allow-cabal false \
+            --max-points 200 \
+            --timeout 15000 \
+            --require false
+
+          WF_CHECK="${REPLAY_DIR}/waveform.check.json"
+          if [ -f "$WF_CHECK" ]; then
+            echo "## Waveform Lane (universe)" >> "$GITHUB_STEP_SUMMARY"
+            echo "- pass: $(jq -r '.pass' "$WF_CHECK")" >> "$GITHUB_STEP_SUMMARY"
+            echo "- tool: $(jq -r '.tool.kind // \"unknown\"' "$WF_CHECK")" >> "$GITHUB_STEP_SUMMARY"
+            echo "- failures: $(jq -r '(.failures // []) | if length==0 then \"none\" else join(\" | \") end' "$WF_CHECK")" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Visual universe summary
         if: always()
         shell: bash
@@ -419,6 +472,10 @@ jobs:
             light-garden/audit/results/bench/replay/universe/latest/universe-loader.js
             light-garden/audit/results/bench/replay/universe/latest/portal-immersive.html
             light-garden/audit/results/bench/replay/universe/latest/portal-immersive.js
+            light-garden/audit/results/bench/replay/universe/latest/waveform-points.txt
+            light-garden/audit/results/bench/replay/universe/latest/waveform-summary.json
+            light-garden/audit/results/bench/replay/universe/latest/waveform.check.json
+            light-garden/audit/results/bench/replay/universe/latest/waveform-analysis.ndjson
 
   visual-integrate-vm:
     runs-on: ubuntu-latest
