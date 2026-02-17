@@ -1,0 +1,113 @@
+name: Visual Integration Artifacts
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/visual-integration-artifacts.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/visual-integration-artifacts.yml"
+  workflow_dispatch:
+
+jobs:
+  visual-integrate-bench:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      LIGHT_GARDEN_REPO: ${{ vars.LIGHT_GARDEN_REPO }}
+      WORDNET_SIMILARITY_MODE: strict
+      CSERVER_RATE_LIMIT: "100"
+
+    steps:
+      - name: Resolve repo defaults
+        shell: bash
+        run: |
+          echo "LIGHT_GARDEN_REPO=${LIGHT_GARDEN_REPO:-${GITHUB_REPOSITORY_OWNER}/light-garden}" >> "$GITHUB_ENV"
+
+      - name: Checkout light-garden
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.LIGHT_GARDEN_REPO }}
+          fetch-depth: 0
+          path: light-garden
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install light-garden audit deps
+        working-directory: light-garden/audit
+        run: npm ci
+
+      - name: Run visual integration (bench)
+        working-directory: light-garden/audit
+        run: npm run -s visual:integrate
+
+      - name: Upload visual bench artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-integrate-bench-${{ github.run_id }}
+          if-no-files-found: warn
+          path: |
+            light-garden/audit/results/bench/replay/latest/build-replay-federation.tgz
+            light-garden/audit/results/bench/replay/latest/build-replay-check.json
+            light-garden/audit/results/bench/replay/latest/build-replay-manifest.json
+
+  visual-integrate-spine:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      LIGHT_GARDEN_REPO: ${{ vars.LIGHT_GARDEN_REPO }}
+      WORDNET_SIMILARITY_MODE: strict
+      CSERVER_RATE_LIMIT: "100"
+
+    steps:
+      - name: Resolve repo defaults
+        shell: bash
+        run: |
+          echo "LIGHT_GARDEN_REPO=${LIGHT_GARDEN_REPO:-${GITHUB_REPOSITORY_OWNER}/light-garden}" >> "$GITHUB_ENV"
+
+      - name: Checkout light-garden
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.LIGHT_GARDEN_REPO }}
+          fetch-depth: 0
+          path: light-garden
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install light-garden audit deps
+        working-directory: light-garden/audit
+        run: npm ci
+
+      - name: Provision spine trace fixture
+        run: |
+          mkdir -p light-garden/artifacts
+          if [ ! -f light-garden/artifacts/spine-trace.ndjson ]; then
+            printf '%s\n' '{"timestamp":"1970-01-01T00:00:00Z","event":"run.start","payload":{"source":"ci-fixture"}}' > light-garden/artifacts/spine-trace.ndjson
+          fi
+
+      - name: Run visual integration (spine)
+        working-directory: light-garden/audit
+        run: npm run -s visual:integrate:spine
+
+      - name: Upload visual spine artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-integrate-spine-${{ github.run_id }}
+          if-no-files-found: warn
+          path: |
+            light-garden/audit/results/bench/replay/spine/latest/build-replay-federation.tgz
+            light-garden/audit/results/bench/replay/spine/latest/build-replay-check.json
+            light-garden/audit/results/bench/replay/spine/latest/build-replay-manifest.json
