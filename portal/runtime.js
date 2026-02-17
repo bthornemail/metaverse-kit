@@ -217,6 +217,95 @@ async function main() {
     }
   });
 
+  // Waveform view is intentionally independent of the metaverse-kit bundle roles.
+  // If a directory contains only waveform artifacts, this portal should still be able to show them.
+  async function setWaveformEnabled(enabled) {
+    if (!waveformStatus || !waveform2d || !waveform3d) return;
+    if (!enabled) {
+      waveformStatus.textContent = "";
+      waveform2d.innerHTML = "";
+      const ctx = waveform3d.getContext("2d");
+      if (ctx) ctx.clearRect(0, 0, waveform3d.width, waveform3d.height);
+      return;
+    }
+    waveformStatus.textContent = "loading…";
+    waveformStatus.className = "small";
+
+    const svgText = await tryFetchText("../waveform.canvas.svg");
+    const sceneJson = await tryFetchJson("../waveform.canisa.scene.json");
+    if (!svgText && !sceneJson) {
+      waveformStatus.textContent = "No waveform artifacts in this bundle.";
+      waveformStatus.className = "small bad";
+      waveform2d.innerHTML = "";
+      const ctx = waveform3d.getContext("2d");
+      if (ctx) ctx.clearRect(0, 0, waveform3d.width, waveform3d.height);
+      return;
+    }
+
+    const requireWaveformRender = new URL(window.location.href).searchParams.get("require_waveform_render") === "true";
+    if (requireWaveformRender) {
+      const check = await tryFetchJson("../waveform.render.check.json");
+      if (!check) {
+        waveformStatus.textContent = "missing waveform.render.check.json (required)";
+        waveformStatus.className = "small bad";
+        return;
+      }
+      if (check.pass !== true) {
+        waveformStatus.textContent = "waveform.render.check.json pass=false (required)";
+        waveformStatus.className = "small bad";
+        return;
+      }
+      if (svgText) {
+        const svgBytes = new TextEncoder().encode(svgText);
+        const svgSha = await sha256PrefFromBytes(svgBytes);
+        const expectedSvg = check.outputs && check.outputs["waveform.canvas.svg"] ? check.outputs["waveform.canvas.svg"].sha256 : null;
+        if (expectedSvg && expectedSvg !== svgSha) {
+          waveformStatus.textContent = "waveform.canvas.svg digest mismatch (required)";
+          waveformStatus.className = "small bad";
+          return;
+        }
+      }
+    }
+
+    if (svgText) {
+      const blob = new Blob([svgText], { type: "image/svg+xml" });
+      const url = URL.createObjectURL(blob);
+      waveform2d.innerHTML = "";
+      const img = document.createElement("img");
+      img.alt = "waveform.canvas.svg";
+      img.src = url;
+      waveform2d.appendChild(img);
+    } else {
+      waveform2d.innerHTML = `<div class="small">missing waveform.canvas.svg</div>`;
+    }
+
+    if (sceneJson) {
+      drawWaveform3D(waveform3d, sceneJson);
+    } else {
+      const ctx = waveform3d.getContext("2d");
+      if (ctx) {
+        ctx.clearRect(0, 0, waveform3d.width, waveform3d.height);
+        ctx.fillStyle = "rgba(158,183,186,0.8)";
+        ctx.font = "12px ui-monospace, Menlo, Consolas, monospace";
+        ctx.fillText("missing waveform.canisa.scene.json", 12, 18);
+      }
+    }
+
+    waveformStatus.textContent = "waveform loaded";
+    waveformStatus.className = "small good";
+  }
+
+  if (waveformToggle) {
+    waveformToggle.addEventListener("change", () => {
+      void setWaveformEnabled(Boolean(waveformToggle.checked));
+    });
+    const auto = new URL(window.location.href).searchParams.get("mode") === "waveform";
+    if (auto) {
+      waveformToggle.checked = true;
+      void setWaveformEnabled(true);
+    }
+  }
+
   try {
     const verified = await verifyBundle("../");
     const manifest = verified.manifest;
@@ -275,89 +364,6 @@ async function main() {
       renderNarrativeStates(document.getElementById("narrativeState"), narrativeState);
     }
     proposalStatus.textContent = "0 selected";
-
-    // Optional waveform artifacts (projection-only).
-    async function setWaveformEnabled(enabled) {
-      if (!waveformStatus || !waveform2d || !waveform3d) return;
-      if (!enabled) {
-        waveformStatus.textContent = "";
-        waveform2d.innerHTML = "";
-        const ctx = waveform3d.getContext("2d");
-        if (ctx) ctx.clearRect(0, 0, waveform3d.width, waveform3d.height);
-        return;
-      }
-      waveformStatus.textContent = "loading…";
-      waveformStatus.className = "small";
-
-      const svgText = await tryFetchText("../waveform.canvas.svg");
-      const sceneJson = await tryFetchJson("../waveform.canisa.scene.json");
-      if (!svgText && !sceneJson) {
-        waveformStatus.textContent = "No waveform artifacts in this bundle.";
-        waveformStatus.className = "small bad";
-        waveform2d.innerHTML = "";
-        const ctx = waveform3d.getContext("2d");
-        if (ctx) ctx.clearRect(0, 0, waveform3d.width, waveform3d.height);
-        return;
-      }
-
-      const requireWaveformRender = new URL(window.location.href).searchParams.get("require_waveform_render") === "true";
-      if (requireWaveformRender) {
-        const check = await tryFetchJson("../waveform.render.check.json");
-        if (!check) {
-          waveformStatus.textContent = "missing waveform.render.check.json (required)";
-          waveformStatus.className = "small bad";
-          return;
-        }
-        if (check.pass !== true) {
-          waveformStatus.textContent = "waveform.render.check.json pass=false (required)";
-          waveformStatus.className = "small bad";
-          return;
-        }
-        if (svgText) {
-          const svgBytes = new TextEncoder().encode(svgText);
-          const svgSha = await sha256PrefFromBytes(svgBytes);
-          const expectedSvg = check.outputs && check.outputs["waveform.canvas.svg"] ? check.outputs["waveform.canvas.svg"].sha256 : null;
-          if (expectedSvg && expectedSvg !== svgSha) {
-            waveformStatus.textContent = "waveform.canvas.svg digest mismatch (required)";
-            waveformStatus.className = "small bad";
-            return;
-          }
-        }
-      }
-
-      if (svgText) {
-        const blob = new Blob([svgText], { type: "image/svg+xml" });
-        const url = URL.createObjectURL(blob);
-        waveform2d.innerHTML = "";
-        const img = document.createElement("img");
-        img.alt = "waveform.canvas.svg";
-        img.src = url;
-        waveform2d.appendChild(img);
-      } else {
-        waveform2d.innerHTML = `<div class="small">missing waveform.canvas.svg</div>`;
-      }
-
-      if (sceneJson) {
-        drawWaveform3D(waveform3d, sceneJson);
-      } else {
-        const ctx = waveform3d.getContext("2d");
-        if (ctx) {
-          ctx.clearRect(0, 0, waveform3d.width, waveform3d.height);
-          ctx.fillStyle = "rgba(158,183,186,0.8)";
-          ctx.font = "12px ui-monospace, Menlo, Consolas, monospace";
-          ctx.fillText("missing waveform.canisa.scene.json", 12, 18);
-        }
-      }
-
-      waveformStatus.textContent = "waveform loaded";
-      waveformStatus.className = "small good";
-    }
-
-    if (waveformToggle) {
-      waveformToggle.addEventListener("change", () => {
-        void setWaveformEnabled(Boolean(waveformToggle.checked));
-      });
-    }
   } catch (err) {
     status.textContent = `FAILED: ${err.message || err}`;
     status.className = "bad";
