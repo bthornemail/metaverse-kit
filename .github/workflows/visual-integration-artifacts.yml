@@ -87,8 +87,6 @@ jobs:
     continue-on-error: true
     env:
       LIGHT_GARDEN_REPO: ${{ vars.LIGHT_GARDEN_REPO }}
-      AUTOMATON_REPO: ${{ vars.AUTOMATON_REPO }}
-      MIND_GIT_VR_ECOSYSTEM_REPO: ${{ vars.MIND_GIT_VR_ECOSYSTEM_REPO }}
       WORDNET_SIMILARITY_MODE: strict
       CSERVER_RATE_LIMIT: "100"
 
@@ -97,8 +95,6 @@ jobs:
         shell: bash
         run: |
           echo "LIGHT_GARDEN_REPO=${LIGHT_GARDEN_REPO:-${GITHUB_REPOSITORY_OWNER}/light-garden}" >> "$GITHUB_ENV"
-          echo "AUTOMATON_REPO=${AUTOMATON_REPO:-${GITHUB_REPOSITORY_OWNER}/automaton}" >> "$GITHUB_ENV"
-          echo "MIND_GIT_VR_ECOSYSTEM_REPO=${MIND_GIT_VR_ECOSYSTEM_REPO:-${GITHUB_REPOSITORY_OWNER}/mind-git-vr-ecosystem}" >> "$GITHUB_ENV"
 
       - name: Checkout light-garden
         uses: actions/checkout@v4
@@ -106,20 +102,6 @@ jobs:
           repository: ${{ env.LIGHT_GARDEN_REPO }}
           fetch-depth: 0
           path: light-garden
-
-      - name: Checkout automaton
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.AUTOMATON_REPO }}
-          fetch-depth: 0
-          path: automaton
-
-      - name: Checkout mind-git-vr-ecosystem
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.MIND_GIT_VR_ECOSYSTEM_REPO }}
-          fetch-depth: 0
-          path: mind-git-vr-ecosystem
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -149,12 +131,12 @@ jobs:
 
           REPLAY_DIR="light-garden/audit/results/bench/replay/spine/latest"
 
-          node mind-git-vr-ecosystem/church-metaverse/scripts/ndjson-svg-vr-bridge.mjs \
+          node light-garden/audit/scripts/ndjson-svg-portal-bridge.js \
             --ndjson "${REPLAY_DIR}/build-replay.ndjson" \
             --svg "${REPLAY_DIR}/build-replay.svg" \
             --out-dir "${REPLAY_DIR}"
 
-          npm --prefix automaton run -s portal:gate -- \
+          node light-garden/portal-gate.js \
             --bundle "${REPLAY_DIR}" \
             --out "${REPLAY_DIR}" \
             --portal-scene portal-scene.json \
@@ -360,14 +342,12 @@ jobs:
     continue-on-error: true
     env:
       LIGHT_GARDEN_REPO: ${{ vars.LIGHT_GARDEN_REPO }}
-      AUTOMATON_REPO: ${{ vars.AUTOMATON_REPO }}
 
     steps:
       - name: Resolve repo defaults
         shell: bash
         run: |
           echo "LIGHT_GARDEN_REPO=${LIGHT_GARDEN_REPO:-${GITHUB_REPOSITORY_OWNER}/light-garden}" >> "$GITHUB_ENV"
-          echo "AUTOMATON_REPO=${AUTOMATON_REPO:-${GITHUB_REPOSITORY_OWNER}/automaton}" >> "$GITHUB_ENV"
 
       - name: Checkout light-garden
         uses: actions/checkout@v4
@@ -375,13 +355,6 @@ jobs:
           repository: ${{ env.LIGHT_GARDEN_REPO }}
           fetch-depth: 0
           path: light-garden
-
-      - name: Checkout automaton
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.AUTOMATON_REPO }}
-          fetch-depth: 0
-          path: automaton
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -440,7 +413,12 @@ jobs:
             light-garden/audit/results/bench/replay/universe/latest/portal-gate.json
             light-garden/audit/results/bench/replay/universe/latest/portal-gate.ndjson
             light-garden/audit/results/bench/replay/universe/latest/portal-scene.json
+            light-garden/audit/results/bench/replay/universe/latest/portal-overlay.svg
             light-garden/audit/results/bench/replay/universe/latest/portal-bridge.check.json
+            light-garden/audit/results/bench/replay/universe/latest/portal.html
+            light-garden/audit/results/bench/replay/universe/latest/universe-loader.js
+            light-garden/audit/results/bench/replay/universe/latest/portal-immersive.html
+            light-garden/audit/results/bench/replay/universe/latest/portal-immersive.js
 
   visual-integrate-vm:
     runs-on: ubuntu-latest
@@ -589,8 +567,6 @@ jobs:
       LIGHT_GARDEN_REPO: ${{ vars.LIGHT_GARDEN_REPO }}
       TETRAGRAMMATRON_REPO: ${{ vars.TETRAGRAMMATRON_REPO }}
       BICF_REPO: ${{ vars.BICF_REPO }}
-      AUTOMATON_REPO: ${{ vars.AUTOMATON_REPO }}
-      MIND_GIT_VR_ECOSYSTEM_REPO: ${{ vars.MIND_GIT_VR_ECOSYSTEM_REPO }}
 
     steps:
       - name: Resolve repo defaults
@@ -599,8 +575,6 @@ jobs:
           echo "LIGHT_GARDEN_REPO=${LIGHT_GARDEN_REPO:-${GITHUB_REPOSITORY_OWNER}/light-garden}" >> "$GITHUB_ENV"
           echo "TETRAGRAMMATRON_REPO=${TETRAGRAMMATRON_REPO:-${GITHUB_REPOSITORY_OWNER}/tetragrammatron-os}" >> "$GITHUB_ENV"
           echo "BICF_REPO=${BICF_REPO:-${GITHUB_REPOSITORY_OWNER}/boundary-interior-combinatorial-framework}" >> "$GITHUB_ENV"
-          echo "AUTOMATON_REPO=${AUTOMATON_REPO:-${GITHUB_REPOSITORY_OWNER}/automaton}" >> "$GITHUB_ENV"
-          echo "MIND_GIT_VR_ECOSYSTEM_REPO=${MIND_GIT_VR_ECOSYSTEM_REPO:-${GITHUB_REPOSITORY_OWNER}/mind-git-vr-ecosystem}" >> "$GITHUB_ENV"
 
       - name: Checkout light-garden
         uses: actions/checkout@v4
@@ -622,20 +596,6 @@ jobs:
           repository: ${{ env.BICF_REPO }}
           fetch-depth: 0
           path: boundary-interior-combinatorial-framework
-
-      - name: Checkout automaton
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.AUTOMATON_REPO }}
-          fetch-depth: 0
-          path: automaton
-
-      - name: Checkout mind-git-vr-ecosystem
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.MIND_GIT_VR_ECOSYSTEM_REPO }}
-          fetch-depth: 0
-          path: mind-git-vr-ecosystem
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -746,12 +706,12 @@ jobs:
 
           REPLAY_DIR="light-garden/audit/results/bench/replay/vmbench/latest"
 
-          node mind-git-vr-ecosystem/church-metaverse/scripts/ndjson-svg-vr-bridge.mjs \
+          node light-garden/audit/scripts/ndjson-svg-portal-bridge.js \
             --ndjson "${REPLAY_DIR}/build-replay.ndjson" \
             --svg "${REPLAY_DIR}/build-replay.svg" \
             --out-dir "${REPLAY_DIR}"
 
-          npm --prefix automaton run -s portal:gate -- \
+          node light-garden/portal-gate.js \
             --bundle "${REPLAY_DIR}" \
             --out "${REPLAY_DIR}" \
             --portal-scene portal-scene.json \
