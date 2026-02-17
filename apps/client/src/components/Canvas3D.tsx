@@ -18,9 +18,17 @@ interface Canvas3DProps {
   cameraState?: { position: [number, number, number]; target: [number, number, number] };
   onCameraStateChange?: (state: { position: [number, number, number]; target: [number, number, number] }) => void;
   wireframe?: boolean;
+  waveformScene?: {
+    entities?: Array<{
+      id?: string;
+      position?: { x?: number; y?: number; z?: number };
+      color?: string;
+    }>;
+  } | null;
+  waveformEnabled?: boolean;
 }
 
-export default function Canvas3D({ tileState, cameraState, onCameraStateChange, wireframe = false }: Canvas3DProps) {
+export default function Canvas3D({ tileState, cameraState, onCameraStateChange, wireframe = false, waveformScene, waveformEnabled }: Canvas3DProps) {
   const nodes = getLiveNodes(tileState);
   const isolateActive = hasIsolate(nodes);
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
@@ -38,9 +46,46 @@ export default function Canvas3D({ tileState, cameraState, onCameraStateChange, 
           {nodes.map((node) => (
             <NodeMesh key={node.node_id} node={node} isolateActive={isolateActive} wireframe={wireframe} />
           ))}
+          {waveformEnabled ? <WaveformPointCloud scene={waveformScene} /> : null}
         </Suspense>
       </Canvas>
     </div>
+  );
+}
+
+function WaveformPointCloud({
+  scene,
+}: {
+  scene?: {
+    entities?: Array<{
+      id?: string;
+      position?: { x?: number; y?: number; z?: number };
+      color?: string;
+    }>;
+  } | null;
+}) {
+  const entities = Array.isArray(scene?.entities) ? scene?.entities : [];
+  // Keep this intentionally simple and bounded: spheres for each point.
+  // Coordinates in waveform.canisa.scene.json are 0..1; map them into a visible cube.
+  const scale = 200;
+  const radius = 0.9;
+  return (
+    <>
+      {entities.slice(0, 2000).map((e, i) => {
+        const x = typeof e?.position?.x === 'number' ? e.position.x : 0;
+        const y = typeof e?.position?.y === 'number' ? e.position.y : 0;
+        const z = typeof e?.position?.z === 'number' ? e.position.z : 0;
+        const pos: [number, number, number] = [(x - 0.5) * scale, (y - 0.5) * scale, (z - 0.5) * scale];
+        const color = typeof e?.color === 'string' ? e.color : '#22c55e';
+        const key = e?.id ? String(e.id) : `wf:${i}`;
+        return (
+          <mesh key={key} position={pos}>
+            <sphereGeometry args={[radius, 10, 10]} />
+            <meshStandardMaterial color={color} transparent opacity={0.7} />
+          </mesh>
+        );
+      })}
+    </>
   );
 }
 

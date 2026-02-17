@@ -165,6 +165,11 @@ export default function App() {
   const [selectedIds, setSelectedIds] = useState<NodeId[]>([]);
   const [viewMode, setViewMode] = useState<'1d' | '2d' | 'wireframe' | '3d'>('wireframe');
   const [narrativeMode, setNarrativeMode] = useState(false);
+  const [waveformEnabled, setWaveformEnabled] = useState(false);
+  const [waveformSvgUrl, setWaveformSvgUrl] = useState<string | null>(null);
+  const [waveformScene, setWaveformScene] = useState<any | null>(null);
+  const [waveformStatus, setWaveformStatus] = useState<'idle' | 'loading' | 'ready' | 'missing' | 'error'>('idle');
+  const [waveformMessage, setWaveformMessage] = useState<string>('');
   const [semanticRole, setSemanticRole] = useState<SemanticRole>('law');
   const [symbolSet, setSymbolSet] = useState(DEFAULT_ASSET_PACKS[0].id);
   const [assetPacks, setAssetPacks] = useState<AssetPack[]>(DEFAULT_ASSET_PACKS);
@@ -243,6 +248,80 @@ export default function App() {
   const lastTimelinePctRef = useRef<number | null>(null);
   const autoSampleRef = useRef(false);
   const ext32Packs = useMemo(() => ext32Registry.list(), [ext32Version]);
+
+  function getWaveformBase() {
+    // Prefer `?base=` for parity with replay bundles (light-garden, etc.).
+    const base = new URL(window.location.href).searchParams.get('base') || './';
+    return base.endsWith('/') ? base : `${base}/`;
+  }
+
+  async function sha256Text(text: string) {
+    const bytes = new TextEncoder().encode(text);
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    const hex = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
+    return `sha256:${hex}`;
+  }
+
+  async function loadWaveformArtifacts() {
+    const base = getWaveformBase();
+    setWaveformStatus('loading');
+    setWaveformMessage('');
+    try {
+      // 2D overlay SVG
+      const svgRes = await fetch(`${base}waveform.canvas.svg`, { cache: 'no-store' });
+      if (!svgRes.ok) {
+        setWaveformStatus('missing');
+        setWaveformMessage(`No waveform artifacts in this bundle (${svgRes.status})`);
+        setWaveformSvgUrl(null);
+        setWaveformScene(null);
+        return;
+      }
+      const svgText = await svgRes.text();
+      const svgBlob = new Blob([svgText], { type: 'image/svg+xml' });
+      const svgUrl = URL.createObjectURL(svgBlob);
+      setWaveformSvgUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return svgUrl;
+      });
+
+      // 3D scene (optional)
+      const sceneRes = await fetch(`${base}waveform.canisa.scene.json`, { cache: 'no-store' });
+      if (sceneRes.ok) {
+        setWaveformScene(await sceneRes.json());
+      } else {
+        setWaveformScene(null);
+      }
+
+      // Optional verification: require_waveform_render=true -> verify waveform.render.check.json matches.
+      const requireWaveformRender = new URL(window.location.href).searchParams.get('require_waveform_render') === 'true';
+      if (requireWaveformRender) {
+        const checkRes = await fetch(`${base}waveform.render.check.json`, { cache: 'no-store' });
+        if (!checkRes.ok) throw new Error(`missing waveform.render.check.json (${checkRes.status})`);
+        const check = await checkRes.json();
+        if (!check || check.pass !== true) throw new Error('waveform.render.check.json pass=false');
+        const svgSha = await sha256Text(svgText);
+        const expectedSvg = check.outputs?.['waveform.canvas.svg']?.sha256;
+        if (expectedSvg && expectedSvg !== svgSha) throw new Error('waveform.canvas.svg sha256 mismatch');
+        // Note: we intentionally do not verify the JSON scene sha in-browser because JSON serialization
+        // will not match the file byte-for-byte. The authoritative verifier for bundles is server/CI-side.
+      }
+
+      setWaveformStatus('ready');
+      setWaveformMessage('waveform loaded');
+    } catch (err: any) {
+      setWaveformStatus('error');
+      setWaveformMessage(String(err?.message || err));
+      setWaveformSvgUrl(null);
+      setWaveformScene(null);
+    }
+  }
+
+  useEffect(() => {
+    if (!waveformEnabled) return;
+    void loadWaveformArtifacts();
+    return () => {};
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [waveformEnabled]);
   const samplePacks = useMemo(
     () =>
       SAMPLE_ASSETS.map((sample) => ({
@@ -2187,6 +2266,12 @@ export default function App() {
               targetId
             );
           }}
+          waveformOverlay={{
+            enabled: waveformEnabled,
+            url: waveformSvgUrl,
+            opacity: 0.35,
+            worldRect: { x: 0, y: 0, w: 1200, h: 680 },
+          }}
         />
       ) : null}
       {viewMode === '2d' ? (
@@ -2201,6 +2286,8 @@ export default function App() {
           cameraState={camera3dState ?? undefined}
           onCameraStateChange={(next) => setCamera3dState(next)}
           wireframe={viewMode === 'wireframe'}
+          waveformEnabled={waveformEnabled}
+          waveformScene={waveformScene}
         />
       ) : null}
       {viewMode === '1d' ? (
@@ -2416,6 +2503,21 @@ export default function App() {
           2D View
         </button>
         <button
+          onClick={() => setWaveformEnabled((v) => !v)}
+          style={{
+            padding: uiButtonPadding,
+            background: waveformEnabled ? '#ffd166' : '#222',
+            color: waveformEnabled ? '#0b0b0b' : '#aaa',
+            border: '1px solid ' + (waveformEnabled ? '#ffd166' : '#333'),
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: uiFontSize,
+          }}
+          title="Toggle waveform overlay (loads waveform.canvas.svg + waveform.canisa.scene.json if present)"
+        >
+          Waveform
+        </button>
+        <button
           onClick={() => setViewMode('wireframe')}
           style={{
             padding: uiButtonPadding,
@@ -2457,6 +2559,11 @@ export default function App() {
         >
           Cameras
         </button>
+        {waveformEnabled ? (
+          <div style={{ alignSelf: 'center', color: waveformStatus === 'ready' ? '#86efac' : waveformStatus === 'missing' ? '#fca5a5' : '#aaa', fontSize: uiFontSize }}>
+            wf: {waveformStatus}{waveformMessage ? ` (${waveformMessage})` : ''}
+          </div>
+        ) : null}
         <button
           onClick={() => setLeftPanelMode('stencils')}
           style={{

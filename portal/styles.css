@@ -24,3 +24,26 @@ section h2 { margin: 0 0 8px; font-size: 14px; color: var(--accent); }
 .bad { color: var(--err); }
 .good { color: var(--ok); }
 code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+
+.waveform2d {
+  margin-top: 8px;
+  border: 1px solid #243338;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.02);
+}
+
+.waveform2d img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.waveform3d {
+  margin-top: 10px;
+  width: 100%;
+  height: auto;
+  border: 1px solid #243338;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.02);
+}

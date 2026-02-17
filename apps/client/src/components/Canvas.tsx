@@ -33,6 +33,13 @@ interface CanvasProps {
   onNodeDragMove?: (nodeId: NodeId, delta: { dx: number; dy: number; dz: number }) => void;
   onNodeDragEnd?: (nodeId: NodeId) => void;
   onAssetDrop?: (payload: Record<string, unknown>, world: { x: number; y: number }, targetId?: NodeId) => void;
+  waveformOverlay?: {
+    enabled: boolean;
+    url: string | null;
+    opacity?: number;
+    // World-space rect to place the overlay. Defaults to a 1200x680 box at origin.
+    worldRect?: { x: number; y: number; w: number; h: number };
+  };
 }
 
 export default function Canvas({
@@ -59,6 +66,7 @@ export default function Canvas({
   onNodeDragMove,
   onNodeDragEnd,
   onAssetDrop,
+  waveformOverlay,
 }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -90,6 +98,8 @@ export default function Canvas({
   const hoveredNode = useRef<string | null>(null);
   const [svgTick, setSvgTick] = useState(0);
   const [videoTick, setVideoTick] = useState(0);
+  const waveformCacheRef = useRef<Map<string, HTMLImageElement>>(new Map());
+  const [waveformTick, setWaveformTick] = useState(0);
 
   // Render canvas on every update
   useEffect(() => {
@@ -128,6 +138,31 @@ export default function Canvas({
           : target;
         if (!to) continue;
         drawLink(ctx, from, to, viewport, link.relation);
+      }
+    }
+
+    // Optional waveform overlay (bundle-local projection artifact).
+    // Rendered as a world-space image so it pans/zooms with the infinite canvas.
+    if (waveformOverlay && waveformOverlay.enabled && waveformOverlay.url) {
+      const rect = waveformOverlay.worldRect ?? { x: 0, y: 0, w: 1200, h: 680 };
+      const opacity = typeof waveformOverlay.opacity === 'number' ? waveformOverlay.opacity : 0.35;
+      const [sx, sy] = worldToScreen(rect.x, rect.y, viewport);
+      const [sx2, sy2] = worldToScreen(rect.x + rect.w, rect.y + rect.h, viewport);
+      const sw = sx2 - sx;
+      const sh = sy2 - sy;
+
+      const url = waveformOverlay.url;
+      const cached = waveformCacheRef.current.get(url);
+      if (cached && cached.complete) {
+        ctx.save();
+        ctx.globalAlpha = opacity;
+        ctx.drawImage(cached, sx, sy, sw, sh);
+        ctx.restore();
+      } else if (!cached) {
+        const img = new Image();
+        img.onload = () => setWaveformTick((t) => t + 1);
+        img.src = url;
+        waveformCacheRef.current.set(url, img);
       }
     }
 
@@ -336,10 +371,18 @@ export default function Canvas({
     presence,
     svgTick,
     videoTick,
+    waveformTick,
     selectedIds,
     activeStencilShape,
     previewTransforms,
     selectionRect,
+    waveformOverlay?.enabled,
+    waveformOverlay?.url,
+    waveformOverlay?.opacity,
+    waveformOverlay?.worldRect?.x,
+    waveformOverlay?.worldRect?.y,
+    waveformOverlay?.worldRect?.w,
+    waveformOverlay?.worldRect?.h,
   ]);
 
   useEffect(() => {

@@ -43,6 +43,8 @@
     "mv-pack-demo": "node tools/mv-pack-demo/index.js",
     "mv-proposal-bundle": "node tools/mv-proposal-bundle/index.js",
     "mv-verify-demo": "node tools/mv-verify-demo/index.js",
+    "waveform:render": "node scripts/render-waveform.js",
+    "waveform:render:test": "node scripts/test-waveform-render.js",
     "check:portal-contract": "bash scripts/portal-contract-guard.sh",
     "check:active-key": "bash scripts/check-active-key.sh",
     "release:pack": "bash scripts/release-pack.sh",

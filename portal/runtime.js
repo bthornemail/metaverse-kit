@@ -20,6 +20,88 @@ async function fetchNdjson(path) {
   return txt.split("\n").filter(Boolean).map((line) => JSON.parse(line));
 }
 
+async function tryFetchText(path) {
+  const res = await fetch(path, { cache: "no-store" });
+  if (!res.ok) return null;
+  return await res.text();
+}
+
+async function tryFetchJson(path) {
+  const res = await fetch(path, { cache: "no-store" });
+  if (!res.ok) return null;
+  return await res.json();
+}
+
+function drawWaveform3D(canvas, scene) {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const entities = Array.isArray(scene?.entities) ? scene.entities : [];
+  if (entities.length === 0) {
+    ctx.fillStyle = "rgba(158,183,186,0.8)";
+    ctx.font = "12px ui-monospace, Menlo, Consolas, monospace";
+    ctx.fillText("no waveform entities", 12, 18);
+    return;
+  }
+
+  const w = canvas.width;
+  const h = canvas.height;
+  const cx = w / 2;
+  const cy = h / 2;
+  const scale = Math.min(w, h) * 0.42;
+  const yaw = Math.PI / 5;
+  const pitch = Math.PI / 10;
+
+  function rotY([x, y, z]) {
+    const c = Math.cos(yaw);
+    const s = Math.sin(yaw);
+    return [c * x + s * z, y, -s * x + c * z];
+  }
+  function rotX([x, y, z]) {
+    const c = Math.cos(pitch);
+    const s = Math.sin(pitch);
+    return [x, c * y - s * z, s * y + c * z];
+  }
+  function project([x, y, z]) {
+    const d = 2.4;
+    const k = 1 / (d - z);
+    return [cx + x * scale * k, cy - y * scale * k, k];
+  }
+
+  const pts = entities
+    .slice(0, 2000)
+    .map((e, i) => {
+      const p = e?.position || {};
+      const x = typeof p.x === "number" ? p.x * 2 - 1 : 0;
+      const y = typeof p.y === "number" ? p.y * 2 - 1 : 0;
+      const z = typeof p.z === "number" ? p.z * 2 - 1 : 0;
+      let v = rotY([x, y, z]);
+      v = rotX(v);
+      const [sx, sy, k] = project(v);
+      return { id: e?.id || `wf:${i}`, sx, sy, k, color: e?.color || "rgb(34,197,94)" };
+    })
+    .sort((a, b) => a.k - b.k);
+
+  ctx.fillStyle = "rgba(15,20,22,0.4)";
+  ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "rgba(79,195,247,0.18)";
+  ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+
+  for (const p of pts) {
+    const r = Math.max(0.6, Math.min(3.2, 2.2 * p.k));
+    ctx.beginPath();
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = 0.78;
+    ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = "rgba(158,183,186,0.85)";
+  ctx.font = "12px ui-monospace, Menlo, Consolas, monospace";
+  ctx.fillText(`points: ${pts.length}`, 12, h - 12);
+}
+
 function stableStringify(value) {
   if (Array.isArray(value)) {
     return `[${value.map((v) => stableStringify(v)).join(",")}]`;
@@ -37,6 +119,12 @@ function canonicalJson(obj) {
 
 async function sha256PrefFromText(txt) {
   const bytes = new TextEncoder().encode(txt);
+  const hash = await crypto.subtle.digest("SHA-256", bytes);
+  const hex = [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  return `sha256:${hex}`;
+}
+
+async function sha256PrefFromBytes(bytes) {
   const hash = await crypto.subtle.digest("SHA-256", bytes);
   const hex = [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, "0")).join("");
   return `sha256:${hex}`;
@@ -90,6 +178,10 @@ async function main() {
   const status = document.getElementById("status");
   const proposalStatus = document.getElementById("proposalStatus");
   const exportBtn = document.getElementById("exportProposal");
+  const waveformToggle = document.getElementById("waveformToggle");
+  const waveformStatus = document.getElementById("waveformStatus");
+  const waveform2d = document.getElementById("waveform2d");
+  const waveform3d = document.getElementById("waveform3d");
 
   const selectedNodeIds = new Set();
   let baseBundleDigest = "";
@@ -183,6 +275,89 @@ async function main() {
       renderNarrativeStates(document.getElementById("narrativeState"), narrativeState);
     }
     proposalStatus.textContent = "0 selected";
+
+    // Optional waveform artifacts (projection-only).
+    async function setWaveformEnabled(enabled) {
+      if (!waveformStatus || !waveform2d || !waveform3d) return;
+      if (!enabled) {
+        waveformStatus.textContent = "";
+        waveform2d.innerHTML = "";
+        const ctx = waveform3d.getContext("2d");
+        if (ctx) ctx.clearRect(0, 0, waveform3d.width, waveform3d.height);
+        return;
+      }
+      waveformStatus.textContent = "loading…";
+      waveformStatus.className = "small";
+
+      const svgText = await tryFetchText("../waveform.canvas.svg");
+      const sceneJson = await tryFetchJson("../waveform.canisa.scene.json");
+      if (!svgText && !sceneJson) {
+        waveformStatus.textContent = "No waveform artifacts in this bundle.";
+        waveformStatus.className = "small bad";
+        waveform2d.innerHTML = "";
+        const ctx = waveform3d.getContext("2d");
+        if (ctx) ctx.clearRect(0, 0, waveform3d.width, waveform3d.height);
+        return;
+      }
+
+      const requireWaveformRender = new URL(window.location.href).searchParams.get("require_waveform_render") === "true";
+      if (requireWaveformRender) {
+        const check = await tryFetchJson("../waveform.render.check.json");
+        if (!check) {
+          waveformStatus.textContent = "missing waveform.render.check.json (required)";
+          waveformStatus.className = "small bad";
+          return;
+        }
+        if (check.pass !== true) {
+          waveformStatus.textContent = "waveform.render.check.json pass=false (required)";
+          waveformStatus.className = "small bad";
+          return;
+        }
+        if (svgText) {
+          const svgBytes = new TextEncoder().encode(svgText);
+          const svgSha = await sha256PrefFromBytes(svgBytes);
+          const expectedSvg = check.outputs && check.outputs["waveform.canvas.svg"] ? check.outputs["waveform.canvas.svg"].sha256 : null;
+          if (expectedSvg && expectedSvg !== svgSha) {
+            waveformStatus.textContent = "waveform.canvas.svg digest mismatch (required)";
+            waveformStatus.className = "small bad";
+            return;
+          }
+        }
+      }
+
+      if (svgText) {
+        const blob = new Blob([svgText], { type: "image/svg+xml" });
+        const url = URL.createObjectURL(blob);
+        waveform2d.innerHTML = "";
+        const img = document.createElement("img");
+        img.alt = "waveform.canvas.svg";
+        img.src = url;
+        waveform2d.appendChild(img);
+      } else {
+        waveform2d.innerHTML = `<div class="small">missing waveform.canvas.svg</div>`;
+      }
+
+      if (sceneJson) {
+        drawWaveform3D(waveform3d, sceneJson);
+      } else {
+        const ctx = waveform3d.getContext("2d");
+        if (ctx) {
+          ctx.clearRect(0, 0, waveform3d.width, waveform3d.height);
+          ctx.fillStyle = "rgba(158,183,186,0.8)";
+          ctx.font = "12px ui-monospace, Menlo, Consolas, monospace";
+          ctx.fillText("missing waveform.canisa.scene.json", 12, 18);
+        }
+      }
+
+      waveformStatus.textContent = "waveform loaded";
+      waveformStatus.className = "small good";
+    }
+
+    if (waveformToggle) {
+      waveformToggle.addEventListener("change", () => {
+        void setWaveformEnabled(Boolean(waveformToggle.checked));
+      });
+    }
   } catch (err) {
     status.textContent = `FAILED: ${err.message || err}`;
     status.className = "bad";
