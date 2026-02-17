@@ -87,6 +87,8 @@ jobs:
     continue-on-error: true
     env:
       LIGHT_GARDEN_REPO: ${{ vars.LIGHT_GARDEN_REPO }}
+      AUTOMATON_REPO: ${{ vars.AUTOMATON_REPO }}
+      MIND_GIT_VR_ECOSYSTEM_REPO: ${{ vars.MIND_GIT_VR_ECOSYSTEM_REPO }}
       WORDNET_SIMILARITY_MODE: strict
       CSERVER_RATE_LIMIT: "100"
 
@@ -95,6 +97,8 @@ jobs:
         shell: bash
         run: |
           echo "LIGHT_GARDEN_REPO=${LIGHT_GARDEN_REPO:-${GITHUB_REPOSITORY_OWNER}/light-garden}" >> "$GITHUB_ENV"
+          echo "AUTOMATON_REPO=${AUTOMATON_REPO:-${GITHUB_REPOSITORY_OWNER}/automaton}" >> "$GITHUB_ENV"
+          echo "MIND_GIT_VR_ECOSYSTEM_REPO=${MIND_GIT_VR_ECOSYSTEM_REPO:-${GITHUB_REPOSITORY_OWNER}/mind-git-vr-ecosystem}" >> "$GITHUB_ENV"
 
       - name: Checkout light-garden
         uses: actions/checkout@v4
@@ -102,6 +106,20 @@ jobs:
           repository: ${{ env.LIGHT_GARDEN_REPO }}
           fetch-depth: 0
           path: light-garden
+
+      - name: Checkout automaton
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.AUTOMATON_REPO }}
+          fetch-depth: 0
+          path: automaton
+
+      - name: Checkout mind-git-vr-ecosystem
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.MIND_GIT_VR_ECOSYSTEM_REPO }}
+          fetch-depth: 0
+          path: mind-git-vr-ecosystem
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -122,6 +140,38 @@ jobs:
       - name: Run visual integration (spine)
         working-directory: light-garden/audit
         run: npm run -s visual:integrate:spine
+
+      - name: Portal bridge + portal gate (spine)
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          REPLAY_DIR="light-garden/audit/results/bench/replay/spine/latest"
+
+          node mind-git-vr-ecosystem/church-metaverse/scripts/ndjson-svg-vr-bridge.mjs \
+            --ndjson "${REPLAY_DIR}/build-replay.ndjson" \
+            --svg "${REPLAY_DIR}/build-replay.svg" \
+            --out-dir "${REPLAY_DIR}"
+
+          npm --prefix automaton run -s portal:gate -- \
+            --bundle "${REPLAY_DIR}" \
+            --out "${REPLAY_DIR}" \
+            --portal-scene portal-scene.json \
+            --portal-bridge-check portal-bridge.check.json
+
+          PASS="$(jq -r '.pass' "${REPLAY_DIR}/portal-gate.json")"
+          BRIDGE_OK="$(jq -r '.optional_bridge_validated' "${REPLAY_DIR}/portal-gate.json")"
+          ENTITIES="$(jq -r '.counts.entities' "${REPLAY_DIR}/portal-bridge.check.json")"
+          FAILURES="$(jq -r '(.failures // []) | if length==0 then "none" else join(" | ") end' "${REPLAY_DIR}/portal-gate.json")"
+
+          echo "## Portal Gate (spine)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- pass: ${PASS}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- optional_bridge_validated: ${BRIDGE_OK}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- portal-scene entities: ${ENTITIES}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- failures: ${FAILURES}" >> "$GITHUB_STEP_SUMMARY"
+
+          test "${PASS}" = "true"
 
       - name: Visual spine summary
         if: always()
@@ -159,6 +209,11 @@ jobs:
             light-garden/audit/results/bench/replay/spine/latest/build-replay-manifest.json
             light-garden/audit/results/bench/replay/spine/latest/capabilities.json
             light-garden/audit/results/bench/replay/spine/latest/index.json
+            light-garden/audit/results/bench/replay/spine/latest/portal-scene.json
+            light-garden/audit/results/bench/replay/spine/latest/portal-overlay.svg
+            light-garden/audit/results/bench/replay/spine/latest/portal-bridge.check.json
+            light-garden/audit/results/bench/replay/spine/latest/portal-gate.json
+            light-garden/audit/results/bench/replay/spine/latest/portal-gate.ndjson
 
   visual-integrate-horiz:
     runs-on: ubuntu-latest
