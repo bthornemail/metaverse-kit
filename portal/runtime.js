@@ -347,6 +347,12 @@ async function main() {
       return;
     }
 
+    // Optional verification receipts (bundle-local).
+    const narrVerify = await tryFetchJson("../narrative.verify.json");
+    const bundleVerify = await tryFetchJson("../bundle.verify.json");
+    const narrOk = narrVerify ? narrVerify.verified === true : null;
+    const bundleOk = bundleVerify ? bundleVerify.pass === true : null;
+
     // Load/save minimal state from localStorage (client-side only).
     let save = null;
     try {
@@ -400,8 +406,13 @@ async function main() {
       narrativeList.appendChild(row);
     });
 
-    narrativeStatus.textContent = `narrative loaded (${timeline.length} nodes)`;
-    narrativeStatus.className = "small good";
+    const proofBits = [];
+    if (narrOk === true) proofBits.push("narrative.verify:✅");
+    if (narrOk === false) proofBits.push("narrative.verify:⛔");
+    if (bundleOk === true) proofBits.push("bundle.verify:✅");
+    if (bundleOk === false) proofBits.push("bundle.verify:⛔");
+    narrativeStatus.textContent = `narrative loaded (${timeline.length} nodes)${proofBits.length ? " · " + proofBits.join(" ") : ""}`;
+    narrativeStatus.className = "small" + (narrOk === false ? " bad" : " good");
   }
 
   if (narrativeToggle) {

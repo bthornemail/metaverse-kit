@@ -79,6 +79,7 @@ function main() {
 
   const failures = [];
   const issues = [];
+  const verifiedOutputs = [];
   let attached = false;
   let verified = false;
   let check = null;
@@ -129,7 +130,9 @@ function main() {
         const actual = sha256File(abs);
         if (actual !== expected) {
           issues.push(`digest mismatch: ${rel}`);
+          continue;
         }
+        verifiedOutputs.push({ name, path: rel, sha256: actual });
       }
     }
     verified = issues.length === 0;
@@ -147,6 +150,13 @@ function main() {
     require: requireOk,
     issues,
     failures,
+    inputs: {
+      check: fs.existsSync(checkPath) ? { path: checkRel, sha256: sha256File(checkPath) } : null,
+    },
+    outputs: {
+      verified_count: verifiedOutputs.length,
+      files: verifiedOutputs,
+    },
     run_id: sha256Text(
       [
         'narrative.verify.v1',
@@ -173,4 +183,3 @@ try {
   process.stderr.write(String(err && err.message ? err.message : err) + '\n');
   process.exit(2);
 }
-

@@ -51,6 +51,8 @@
     "narrative:render:test": "node scripts/test-narrative-render.js",
     "narrative:verify": "node scripts/verify-narrative.js",
     "narrative:verify:test": "node scripts/test-narrative-verify.js",
+    "bundle:verify": "node scripts/verify-bundle.js",
+    "bundle:verify:test": "node scripts/test-bundle-verify.js",
     "check:portal-contract": "bash scripts/portal-contract-guard.sh",
     "check:active-key": "bash scripts/check-active-key.sh",
     "release:pack": "bash scripts/release-pack.sh",
