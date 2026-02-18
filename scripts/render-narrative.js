@@ -177,6 +177,14 @@ function main() {
   const outDir = path.resolve(String(args['out-dir'] || args.out || '.'));
   ensureDir(outDir);
 
+  function relOut(absPath) {
+    const rel = path.relative(outDir, absPath).replace(/\\/g, '/');
+    if (rel.startsWith('../') || rel === '..' || path.isAbsolute(rel)) {
+      throw new Error(`unsafe_output_path:${absPath}`);
+    }
+    return rel;
+  }
+
   const manifestRel = String(args.manifest || 'canon-manifest.ndjson');
   const manifestPath = path.isAbsolute(manifestRel) ? manifestRel : path.join(outDir, manifestRel);
   if (!fs.existsSync(manifestPath)) throw new Error(`missing_manifest:${manifestPath}`);
@@ -207,6 +215,7 @@ function main() {
 
   // Build timeline nodes
   const timeline = [];
+  const placementHints = new Map(); // node_id -> {matrix, angle}
   let globalSeq = 1;
   function pushNode(node) {
     if (timeline.length >= maxNodes) return;
@@ -216,6 +225,7 @@ function main() {
   for (let s = 0; s < seriesPaths.length; s += 1) {
     const rel = seriesPaths[s];
     const abs = seriesAbs[s];
+    // Cache series lines once (avoid O(n^2) rereads during entity placement).
     const lines = fs.readFileSync(abs, 'utf8').split('\n').map((l) => l.trim()).filter(Boolean);
     for (let i = 0; i < lines.length; i += 1) {
       const obj = safeJsonParse(lines[i], rel, i + 1);
@@ -223,6 +233,7 @@ function main() {
       const text = extractText(obj) || '';
       const event = String(obj.event || obj.kind || obj.type || 'content');
       const nodeId = `canon:${rel}#L${i + 1}`;
+      placementHints.set(nodeId, tryExtractMatrixAngle(obj));
       const tags = [];
       if (event) tags.push(event);
       if (obj.series) tags.push(`series:${String(obj.series)}`);
@@ -246,11 +257,8 @@ function main() {
 
   // Deterministic placement: prefer matrix/angle, else hash->grid.
   const entities = timeline.map((n, idx) => {
-    const srcAbs = seriesAbs[seriesPaths.indexOf(n.series_path)];
-    const srcLines = fs.readFileSync(srcAbs, 'utf8').split('\n').map((l) => l.trim()).filter(Boolean);
-    const raw = srcLines[n.source_line - 1];
-    const obj = safeJsonParse(raw, n.series_path, n.source_line);
-    const { matrix, angle } = tryExtractMatrixAngle(obj);
+    const hint = placementHints.get(n.node_id) || { matrix: null, angle: null };
+    const { matrix, angle } = hint;
 
     let ux = 0, uy = 0, uz = 0;
     if (Array.isArray(matrix) && matrix.length >= 2) {
@@ -295,6 +303,7 @@ function main() {
   const outCheck = path.join(outDir, String(args.check || 'narrative.check.json'));
   const outSave = path.join(outDir, String(args.save || 'narrative.save.template.json'));
 
+  // Strip internal-only fields if any were added later; keep the output schema stable.
   writeNdjson(outTimeline, timeline);
   const scenePatch = {
     schema_version: 1,
@@ -323,6 +332,10 @@ function main() {
   };
   writeJson(outSave, saveTemplate);
 
+  const outTimelineRel = relOut(outTimeline);
+  const outSceneRel = relOut(outScene);
+  const outSaveRel = relOut(outSave);
+
   const checkObj = {
     schema_version: 1,
     kind: 'narrative.check',
@@ -333,9 +346,9 @@ function main() {
     config: cfg,
     inputs: Object.fromEntries(inputFiles.map((f) => [f.path, { path: f.path, sha256: f.sha256 }])),
     outputs: {
-      'narrative.timeline.ndjson': { path: path.basename(outTimeline), sha256: sha256File(outTimeline) },
-      'narrative.scene.patch.json': { path: path.basename(outScene), sha256: sha256File(outScene) },
-      'narrative.save.template.json': { path: path.basename(outSave), sha256: sha256File(outSave) },
+      'narrative.timeline.ndjson': { path: outTimelineRel, sha256: sha256File(outTimeline) },
+      'narrative.scene.patch.json': { path: outSceneRel, sha256: sha256File(outScene) },
+      'narrative.save.template.json': { path: outSaveRel, sha256: sha256File(outSave) },
     },
   };
   writeJson(outCheck, checkObj);
@@ -351,4 +364,3 @@ try {
   process.stderr.write(String(err && err.message ? err.message : err) + '\n');
   process.exit(2);
 }
-
