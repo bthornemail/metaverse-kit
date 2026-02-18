@@ -25,10 +25,12 @@ function main() {
   const verifyBundle = path.join(repoRoot, 'scripts', 'verify-bundle.js');
   const renderWf = path.join(repoRoot, 'scripts', 'render-waveform.js');
   const renderNarr = path.join(repoRoot, 'scripts', 'render-narrative.js');
+  const renderDash = path.join(repoRoot, 'scripts', 'render-dashboard.js');
 
   assert(fs.existsSync(verifyBundle), 'missing verify-bundle.js');
   assert(fs.existsSync(renderWf), 'missing render-waveform.js');
   assert(fs.existsSync(renderNarr), 'missing render-narrative.js');
+  assert(fs.existsSync(renderDash), 'missing render-dashboard.js');
 
   // Case 1: empty dir, optional -> pass
   const tmp1 = fs.mkdtempSync(path.join(os.tmpdir(), 'mvk-bundle-verify-empty-'));
@@ -56,6 +58,14 @@ function main() {
   const b2 = spawnSync(process.execPath, [verifyBundle, '--dir', tmp3, '--out', tmp3, '--require-waveform-render', 'true'], { encoding: 'utf8' });
   assert(b2.status === 0, 'required waveform render should pass when artifacts present');
 
+  // Case 5: dashboard present, required dashboard -> pass
+  const tmp4 = fs.mkdtempSync(path.join(os.tmpdir(), 'mvk-bundle-verify-dash-'));
+  write(path.join(tmp4, 'floorplan.svg'), '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"></svg>\n');
+  const rD = spawnSync(process.execPath, [renderDash, '--out-dir', tmp4, '--floorplan', 'floorplan.svg'], { encoding: 'utf8' });
+  assert(rD.status === 0, 'render dashboard failed');
+  const b3 = spawnSync(process.execPath, [verifyBundle, '--dir', tmp4, '--out', tmp4, '--require-dashboard', 'true'], { encoding: 'utf8' });
+  assert(b3.status === 0, 'required dashboard should pass when artifacts present');
+
   process.stdout.write(JSON.stringify({ ok: true }) + '\n');
 }
 
@@ -65,4 +75,3 @@ try {
   process.stderr.write(String(err && err.message ? err.message : err) + '\n');
   process.exit(1);
 }
-

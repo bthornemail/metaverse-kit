@@ -193,6 +193,9 @@ async function main() {
   const waveformStatus = document.getElementById("waveformStatus");
   const waveform2d = document.getElementById("waveform2d");
   const waveform3d = document.getElementById("waveform3d");
+  const dashboardToggle = document.getElementById("dashboardToggle");
+  const dashboardStatus = document.getElementById("dashboardStatus");
+  const dashboard2d = document.getElementById("dashboard2d");
   const narrativeToggle = document.getElementById("narrativeToggle");
   const narrativeStatus = document.getElementById("narrativeStatus");
   const narrativeNow = document.getElementById("narrativeNow");
@@ -318,6 +321,52 @@ async function main() {
     if (auto) {
       waveformToggle.checked = true;
       void setWaveformEnabled(true);
+    }
+  }
+
+  async function setDashboardEnabled(enabled) {
+    if (!dashboardStatus || !dashboard2d) return;
+    if (!enabled) {
+      dashboardStatus.textContent = "";
+      dashboard2d.innerHTML = "";
+      return;
+    }
+    dashboardStatus.textContent = "loading…";
+    dashboardStatus.className = "small";
+
+    const svgText = await tryFetchText("../world.dashboard.svg");
+    if (!svgText) {
+      dashboardStatus.textContent = "No dashboard artifacts in this bundle.";
+      dashboardStatus.className = "small bad";
+      dashboard2d.innerHTML = "";
+      return;
+    }
+    const blob = new Blob([svgText], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    dashboard2d.innerHTML = "";
+    const img = document.createElement("img");
+    img.alt = "world.dashboard.svg";
+    img.src = url;
+    dashboard2d.appendChild(img);
+
+    const dashVerify = await tryFetchJson("../world.dashboard.verify.json");
+    const bundleVerify = await tryFetchJson("../bundle.verify.json");
+    const proofBits = [];
+    if (dashVerify) proofBits.push(`dashboard.verify:${dashVerify.verified === true ? "✅" : "⛔"}`);
+    if (bundleVerify) proofBits.push(`bundle.verify:${bundleVerify.pass === true ? "✅" : "⛔"}`);
+
+    dashboardStatus.textContent = `dashboard loaded${proofBits.length ? " · " + proofBits.join(" ") : ""}`;
+    dashboardStatus.className = "small" + (dashVerify && dashVerify.verified === false ? " bad" : " good");
+  }
+
+  if (dashboardToggle) {
+    dashboardToggle.addEventListener("change", () => {
+      void setDashboardEnabled(Boolean(dashboardToggle.checked));
+    });
+    const auto = new URL(window.location.href).searchParams.get("mode") === "dashboard";
+    if (auto) {
+      dashboardToggle.checked = true;
+      void setDashboardEnabled(true);
     }
   }
 

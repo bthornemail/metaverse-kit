@@ -72,10 +72,12 @@ function main() {
 
   const requireWaveformRender = String(args['require-waveform-render'] || '').toLowerCase() === 'true';
   const requireNarrative = String(args['require-narrative'] || '').toLowerCase() === 'true';
+  const requireDashboard = String(args['require-dashboard'] || '').toLowerCase() === 'true';
 
   const scriptsDir = path.resolve(__dirname);
   const wfVerify = path.join(scriptsDir, 'verify-waveform-render.js');
   const narrVerify = path.join(scriptsDir, 'verify-narrative.js');
+  const dashVerify = path.join(scriptsDir, 'verify-dashboard.js');
 
   const events = [];
   let seq = 1;
@@ -90,6 +92,7 @@ function main() {
   const lane = {
     waveform_render: { invoked: false, pass: null, out: null },
     narrative: { invoked: false, pass: null, out: null },
+    dashboard: { invoked: false, pass: null, out: null },
   };
 
   if (fs.existsSync(wfVerify)) {
@@ -112,12 +115,24 @@ function main() {
     emit('bundle.verify.lane', { lane: 'narrative', missing: true });
   }
 
+  if (fs.existsSync(dashVerify)) {
+    const r = spawnSync(process.execPath, [dashVerify, '--dir', dir, '--out', outDir, '--require', requireDashboard ? 'true' : 'false'], { encoding: 'utf8' });
+    lane.dashboard.invoked = true;
+    lane.dashboard.pass = r.status === 0;
+    lane.dashboard.out = path.join(outDir, 'world.dashboard.verify.json');
+    emit('bundle.verify.lane', { lane: 'dashboard', status: r.status });
+  } else {
+    emit('bundle.verify.lane', { lane: 'dashboard', missing: true });
+  }
+
   const wfJson = lane.waveform_render.out && fs.existsSync(lane.waveform_render.out) ? safeReadJson(lane.waveform_render.out) : null;
   const narrJson = lane.narrative.out && fs.existsSync(lane.narrative.out) ? safeReadJson(lane.narrative.out) : null;
+  const dashJson = lane.dashboard.out && fs.existsSync(lane.dashboard.out) ? safeReadJson(lane.dashboard.out) : null;
 
   const failures = [];
   if (requireWaveformRender && !(wfJson && wfJson.verified === true)) failures.push('required waveform render not verified');
   if (requireNarrative && !(narrJson && narrJson.verified === true)) failures.push('required narrative not verified');
+  if (requireDashboard && !(dashJson && dashJson.verified === true)) failures.push('required dashboard not verified');
 
   // pass means: policies satisfied. Optional lanes may be missing/unverified without failing.
   const pass = failures.length === 0;
@@ -131,18 +146,21 @@ function main() {
     policy: {
       require_waveform_render: requireWaveformRender,
       require_narrative: requireNarrative,
+      require_dashboard: requireDashboard,
     },
     lanes: {
       waveform_render: wfJson ? { ...wfJson } : { attached: false, verified: false },
       narrative: narrJson ? { ...narrJson } : { attached: false, verified: false },
+      dashboard: dashJson ? { ...dashJson } : { attached: false, verified: false },
     },
     failures,
     run_id: sha256Text(
       [
         'bundle.verify.v1',
-        `policy=${JSON.stringify({ requireWaveformRender, requireNarrative })}`,
+        `policy=${JSON.stringify({ requireWaveformRender, requireNarrative, requireDashboard })}`,
         `wf=${wfJson ? sha256File(lane.waveform_render.out) : ''}`,
         `narr=${narrJson ? sha256File(lane.narrative.out) : ''}`,
+        `dash=${dashJson ? sha256File(lane.dashboard.out) : ''}`,
       ].join('\n')
     ),
   };
@@ -163,4 +181,3 @@ try {
   process.stderr.write(String(err && err.message ? err.message : err) + '\n');
   process.exit(2);
 }
-
