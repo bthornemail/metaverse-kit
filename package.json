@@ -47,6 +47,8 @@
     "waveform:render:test": "node scripts/test-waveform-render.js",
     "waveform:render:verify": "node scripts/verify-waveform-render.js",
     "waveform:render:verify:test": "node scripts/test-waveform-render-verify.js",
+    "narrative:render": "node scripts/render-narrative.js",
+    "narrative:render:test": "node scripts/test-narrative-render.js",
     "check:portal-contract": "bash scripts/portal-contract-guard.sh",
     "check:active-key": "bash scripts/check-active-key.sh",
     "release:pack": "bash scripts/release-pack.sh",

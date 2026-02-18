@@ -32,6 +32,17 @@ async function tryFetchJson(path) {
   return await res.json();
 }
 
+async function tryFetchNdjson(path) {
+  const res = await fetch(path, { cache: "no-store" });
+  if (!res.ok) return null;
+  const txt = await res.text();
+  return txt
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+}
+
 function drawWaveform3D(canvas, scene) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
@@ -182,6 +193,10 @@ async function main() {
   const waveformStatus = document.getElementById("waveformStatus");
   const waveform2d = document.getElementById("waveform2d");
   const waveform3d = document.getElementById("waveform3d");
+  const narrativeToggle = document.getElementById("narrativeToggle");
+  const narrativeStatus = document.getElementById("narrativeStatus");
+  const narrativeNow = document.getElementById("narrativeNow");
+  const narrativeList = document.getElementById("narrativeList");
 
   const selectedNodeIds = new Set();
   let baseBundleDigest = "";
@@ -303,6 +318,100 @@ async function main() {
     if (auto) {
       waveformToggle.checked = true;
       void setWaveformEnabled(true);
+    }
+  }
+
+  // Narrative loop: bundle-local, optional, deterministic, non-gating.
+  // Files:
+  // - narrative.timeline.ndjson: ordered nodes
+  // - narrative.scene.patch.json: spawnables (not used by this portal yet)
+  // - narrative.save.template.json: save scaffold (optional)
+  const NARR_SAVE_KEY = "mvk:narrative.save";
+  async function setNarrativeEnabled(enabled) {
+    if (!narrativeStatus || !narrativeNow || !narrativeList) return;
+    if (!enabled) {
+      narrativeStatus.textContent = "";
+      narrativeNow.textContent = "";
+      narrativeList.innerHTML = "";
+      return;
+    }
+    narrativeStatus.textContent = "loading…";
+    narrativeStatus.className = "small";
+
+    const timeline = await tryFetchNdjson("../narrative.timeline.ndjson");
+    if (!timeline || timeline.length === 0) {
+      narrativeStatus.textContent = "No narrative artifacts in this bundle.";
+      narrativeStatus.className = "small bad";
+      narrativeNow.textContent = "";
+      narrativeList.innerHTML = "";
+      return;
+    }
+
+    // Load/save minimal state from localStorage (client-side only).
+    let save = null;
+    try {
+      save = JSON.parse(localStorage.getItem(NARR_SAVE_KEY) || "null");
+    } catch {
+      save = null;
+    }
+    if (!save || typeof save !== "object") {
+      save = { last_node_id: null, visited: [] };
+    }
+    const visited = new Set(Array.isArray(save.visited) ? save.visited : []);
+    const last = typeof save.last_node_id === "string" ? save.last_node_id : null;
+
+    // Progression: linear next node in timeline order.
+    let currentIdx = -1;
+    if (last) {
+      currentIdx = timeline.findIndex((n) => n && n.node_id === last);
+    }
+    const nextIdx = Math.max(0, currentIdx + 1);
+    const nextNode = timeline[nextIdx] || null;
+
+    narrativeNow.textContent = nextNode
+      ? `Next: ${nextNode.node_id} (${String(nextNode.event || "node")})`
+      : "Complete.";
+
+    narrativeList.innerHTML = "";
+    const maxShow = 120;
+    timeline.slice(0, maxShow).forEach((n, i) => {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.style.cursor = "pointer";
+      const id = String(n.node_id || `node:${i}`);
+      const done = visited.has(id);
+      row.style.background = done ? "rgba(86,211,100,0.10)" : i === nextIdx ? "rgba(79,195,247,0.10)" : "transparent";
+
+      const left = document.createElement("div");
+      left.textContent = `${done ? "✓" : i === nextIdx ? "▶" : "·"} ${String(n.event || "node")} ${id}`;
+      const right = document.createElement("code");
+      right.className = "small";
+      right.textContent = (String(n.text || "")).slice(0, 80);
+      row.appendChild(left);
+      row.appendChild(right);
+
+      row.addEventListener("click", () => {
+        visited.add(id);
+        save.last_node_id = id;
+        save.visited = [...visited].sort((a, b) => String(a).localeCompare(String(b)));
+        localStorage.setItem(NARR_SAVE_KEY, JSON.stringify(save));
+        void setNarrativeEnabled(true); // rerender
+      });
+      narrativeList.appendChild(row);
+    });
+
+    narrativeStatus.textContent = `narrative loaded (${timeline.length} nodes)`;
+    narrativeStatus.className = "small good";
+  }
+
+  if (narrativeToggle) {
+    narrativeToggle.addEventListener("change", () => {
+      void setNarrativeEnabled(Boolean(narrativeToggle.checked));
+    });
+    const auto = new URL(window.location.href).searchParams.get("mode") === "narrative";
+    if (auto) {
+      narrativeToggle.checked = true;
+      void setNarrativeEnabled(true);
     }
   }
 
