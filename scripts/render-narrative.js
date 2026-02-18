@@ -285,6 +285,9 @@ function main() {
       uz = clamp01(0.85 * uz + 0.15 * (Math.abs(angle) % (Math.PI * 2)) / (Math.PI * 2));
     }
 
+    const spawnEvents = new Set(['chapter', 'series_start', 'revelation', 'closing']);
+    const isSpawn = spawnEvents.has(String(n.event || '').toLowerCase());
+
     return {
       id: n.node_id,
       kind: 'narrative.node',
@@ -294,6 +297,7 @@ function main() {
         event: n.event,
         series_path: n.series_path,
         source_line: n.source_line,
+        spawn: isSpawn,
       }
     };
   });
