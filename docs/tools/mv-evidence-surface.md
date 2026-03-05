@@ -99,3 +99,16 @@ npm run -s mv-evidence-surface -- verify-esp32-uart \
   --in-bin dev-docs/wave30/evidence-surface.uart.esp32.crc8xor.v0.bin \
   --in dev-docs/wave30/evidence-surface.uart.esp32.crc8xor.v0.ndjson
 ```
+
+## Decode ESP32 UART Bytes Back To Canonical Packet NDJSON
+
+```bash
+npm run -s mv-evidence-surface -- decode-esp32-uart \
+  --surface dev-docs/wave30/evidence-surface.chords.v0.json \
+  --emitter dev-docs/wave30/evidence-surface.frames.leds240.esp32.v0.ndjson \
+  --uart-crc crc8-xor-v0 \
+  --in-bin dev-docs/wave30/evidence-surface.uart.esp32.crc8xor.v0.bin \
+  --out /tmp/wave30.uart.decoded.ndjson
+```
+
+Roundtrip parity gate requires decoded NDJSON to match canonical UART NDJSON line-for-line.

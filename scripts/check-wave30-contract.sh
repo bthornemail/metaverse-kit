@@ -9,5 +9,6 @@ bash scripts/wave30-must-reject.sh
 bash scripts/check-wave30-frames-contract.sh
 bash scripts/check-wave30-emitter-contract.sh
 bash scripts/check-wave30-uart-contract.sh
+bash scripts/check-wave30-uart-decode-contract.sh
 
 echo "ok wave30 contract guard"
