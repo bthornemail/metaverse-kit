@@ -52,6 +52,8 @@ require_literal "$D6" 'bytes `37..66`: `dim` mask, 240 bits (30 bytes), bit `i` 
 require_literal "$D6" 'optional byte `67`: CRC byte when `uart_crc=crc8-xor-v0`'
 require_literal "$D6" 'optional `.bin` projection is `concat(packet_bytes in ascending t order)`'
 require_literal "$D6" 'when `uart_crc=crc8-xor-v0`, CRC byte is XOR of bytes `0..66`'
+require_literal "$D6" '## Decoder Roundtrip Contract'
+require_literal "$D6" 'roundtrip parity: `emit -> bin -> decode` equals canonical packet NDJSON'
 
 # Keyset bullets (exact bullets must exist)
 for k in v authority subject_digest claim_type evidence evidence_digest digest; do

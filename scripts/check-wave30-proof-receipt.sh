@@ -45,6 +45,7 @@ require_literal "$W30_RECEIPT" 'ok wave30 must-reject'
 require_literal "$W30_RECEIPT" 'ok wave30 frames contract guard'
 require_literal "$W30_RECEIPT" 'ok wave30 emitter contract guard'
 require_literal "$W30_RECEIPT" 'ok wave30 uart contract guard'
+require_literal "$W30_RECEIPT" 'ok wave30 uart decode contract guard'
 require_literal "$W30_RECEIPT" 'ok wave30 contract guard'
 
 echo "ok wave30 proof receipt guard"

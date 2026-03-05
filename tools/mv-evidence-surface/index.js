@@ -25,6 +25,7 @@ function parseArgs(argv) {
     else if (a === "verify-leds240-esp32") out.mode = "verify-leds240-esp32";
     else if (a === "emit-esp32-uart") out.mode = "emit-esp32-uart";
     else if (a === "verify-esp32-uart") out.mode = "verify-esp32-uart";
+    else if (a === "decode-esp32-uart") out.mode = "decode-esp32-uart";
     else if (a === "--seed-digest" && argv[i + 1]) out.seedDigest = argv[++i];
     else if (a === "--in" && argv[i + 1]) out.input = argv[++i];
     else if (a === "--surface" && argv[i + 1]) out.surface = argv[++i];
@@ -381,6 +382,23 @@ function packetRowsToBuffer(rows) {
   return Buffer.concat(rows.map((r, i) => packetHexToBuffer(r.packet_hex, Number(r.packet_bytes), `surface_uart_packet[${i}]`)));
 }
 
+function unpackPacket(buf, uartCrc, ctx) {
+  const wantBytes = UART_PACKET_BYTES + (uartCrc === UART_CRC_ID ? 1 : 0);
+  if (buf.length !== wantBytes) die(`${ctx} packet length mismatch`);
+  if (buf[0] !== 0x30) die(`${ctx} version byte mismatch`);
+  if (buf[1] !== 0x01) die(`${ctx} profile byte mismatch`);
+  const t = (buf[2] << 8) | buf[3];
+  const frameMs = (buf[4] << 8) | buf[5];
+  const pointer = buf[6];
+  if (pointer !== 0xff && (pointer < 0 || pointer >= RING_SIZE)) die(`${ctx} pointer out of range`);
+  if (uartCrc === UART_CRC_ID) {
+    let crc = 0;
+    for (let i = 0; i < UART_PACKET_BYTES; i++) crc ^= buf[i];
+    if (buf[UART_PACKET_BYTES] !== crc) die(`${ctx} crc mismatch`);
+  }
+  return { t, frameMs, pointer };
+}
+
 function validateUartPacketRecord(x) {
   keyset(x, ["authority", "digest", "frame_digest", "packet_bytes", "packet_hex", "profile", "surface_digest", "t", "uart_crc", "v"], "surface_uart_packet");
   if (x.v !== UART_PACKET_V) die("surface_uart_packet version mismatch");
@@ -506,6 +524,7 @@ async function main() {
     console.log("mv-evidence-surface verify-leds240-esp32 --surface <surface.json> --in <emitter.ndjson> [--frame-ms 50] [--pointer-trace <wave27.ndjson>]");
     console.log("mv-evidence-surface emit-esp32-uart --surface <surface.json> --emitter <emitter.ndjson> --out <packets.ndjson> [--out-bin <packets.bin>] [--uart-crc none|crc8-xor-v0]");
     console.log("mv-evidence-surface verify-esp32-uart --surface <surface.json> --emitter <emitter.ndjson> --in <packets.ndjson> [--in-bin <packets.bin>] [--uart-crc none|crc8-xor-v0]");
+    console.log("mv-evidence-surface decode-esp32-uart --surface <surface.json> --emitter <emitter.ndjson> --in-bin <packets.bin> --out <packets.ndjson> [--uart-crc none|crc8-xor-v0]");
     return;
   }
 
@@ -664,7 +683,43 @@ async function main() {
     return;
   }
 
-  die("mode must be build|verify|render|render-leds240|verify-leds240|render-leds240-esp32|verify-leds240-esp32|emit-esp32-uart|verify-esp32-uart");
+  if (args.mode === "decode-esp32-uart") {
+    if (!args.surface || !args.emitter || !args.inputBin || !args.out) {
+      die("decode-esp32-uart requires --surface --emitter --in-bin --out");
+    }
+    if (args.uartCrc !== "none" && args.uartCrc !== UART_CRC_ID) die("uart crc mode unknown");
+    const surface = await readJson(args.surface);
+    validateSurface(surface);
+    const emitterRows = await readNdjson(args.emitter);
+    if (emitterRows.length === 0) die("emitter NDJSON empty");
+    const raw = await readBin(args.inputBin);
+    const packetBytes = UART_PACKET_BYTES + (args.uartCrc === UART_CRC_ID ? 1 : 0);
+    if (raw.length % packetBytes !== 0) die("uart packet framing mismatch");
+    const rows = [];
+    const packetCount = raw.length / packetBytes;
+    if (packetCount !== emitterRows.length) die("uart packet count mismatch");
+    for (let i = 0; i < emitterRows.length; i++) {
+      const f = emitterRows[i];
+      validateEmitterFrame(f);
+      if (f.surface_digest !== surface.digest) die(`emitter frame ${i} surface_digest mismatch`);
+      const t = toIntInRange(f.t, 0, 10 ** 9, `emitter_frame[${i}].t`);
+      if (t !== i) die(`emitter frame ${i} t sequence mismatch`);
+      const chunk = raw.subarray(i * packetBytes, (i + 1) * packetBytes);
+      const dec = unpackPacket(chunk, args.uartCrc, `uart packet ${i}`);
+      if (dec.t !== t) die(`uart packet ${i} t mismatch`);
+      if (String(dec.frameMs) !== f.frame_ms) die(`uart packet ${i} frame_ms mismatch`);
+      const expectPointer = f.pointer.length === 1 ? Number(f.pointer[0]) : 0xff;
+      if (dec.pointer !== expectPointer) die(`uart packet ${i} pointer mismatch`);
+      const rec = buildUartPacketRecord(surface, f, args.uartCrc);
+      if (rec.packet_hex !== chunk.toString("hex")) die(`uart packet ${i} payload mismatch`);
+      rows.push(rec);
+    }
+    await writeNdjson(args.out, rows);
+    console.log(`ok mv-evidence-surface decode-esp32-uart packets=${rows.length}`);
+    return;
+  }
+
+  die("mode must be build|verify|render|render-leds240|verify-leds240|render-leds240-esp32|verify-leds240-esp32|emit-esp32-uart|verify-esp32-uart|decode-esp32-uart");
 }
 
 main().catch((e) => die(e.message || String(e)));

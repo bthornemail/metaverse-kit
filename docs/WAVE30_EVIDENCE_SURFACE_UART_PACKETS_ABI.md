@@ -70,6 +70,15 @@ For each emitter frame:
 - optional `.bin` projection is `concat(packet_bytes in ascending t order)`
 - when `uart_crc=crc8-xor-v0`, CRC byte is XOR of bytes `0..66`
 
+## Decoder Roundtrip Contract
+
+`decode-esp32-uart` must be able to reconstruct canonical packet NDJSON from UART binary input when provided matching `surface` and `emitter` context:
+
+- input packet framing must be exact (no truncation, no trailing bytes)
+- decoded packet headers must match fixed transport markers
+- decoded packet payload must match canonical `emit-esp32-uart` recomputation
+- roundtrip parity: `emit -> bin -> decode` equals canonical packet NDJSON
+
 No additional semantics are introduced.
 
 ## Must-Reject

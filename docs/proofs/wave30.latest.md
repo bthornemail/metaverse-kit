@@ -18,6 +18,7 @@ npm run -s wave30:must-reject
 npm run -s check:wave30-frames-contract
 npm run -s check:wave30-emitter-contract
 npm run -s check:wave30-uart-contract
+npm run -s check:wave30-uart-decode-contract
 npm run -s check:wave30-contract
 ```
 
@@ -30,5 +31,6 @@ ok wave30 must-reject
 ok wave30 frames contract guard
 ok wave30 emitter contract guard
 ok wave30 uart contract guard
+ok wave30 uart decode contract guard
 ok wave30 contract guard
 ```
