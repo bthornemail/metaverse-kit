@@ -1,0 +1,42 @@
+name: wave17 merge review render guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE17_*"
+      - "docs/tools/mv-merge-review-render.md"
+      - "tools/mv-merge-review-render/**"
+      - "scripts/wave17-merge-review-render-*"
+      - "scripts/check-merge-review-render-contract.sh"
+      - "scripts/check-wave17-merge-review-render-proof-receipt.sh"
+      - "dev-docs/wave17/**"
+      - "dev-docs/wave28/signal-poly-projection.v0.json"
+      - "dev-docs/wave28/poly-decomp.v0.json"
+      - "dev-docs/wave27/pointer-sync.residual.fail.v0.json"
+      - "docs/proofs/wave17-merge-review-render.latest.md"
+      - "package.json"
+      - ".github/workflows/wave17-merge-review-render-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave17-merge-review-render:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install deps
+        run: npm ci
+
+      - name: merge review render contract
+        run: npm run -s check:merge-review-render-contract
+
+      - name: merge review render proof receipt
+        run: npm run -s check:merge-review-render-proof-receipt

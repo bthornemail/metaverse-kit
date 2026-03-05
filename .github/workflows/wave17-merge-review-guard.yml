@@ -1,0 +1,33 @@
+name: wave17 merge review guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE17_*"
+      - "tools/mv-merge-review/**"
+      - "scripts/wave17-merge-review-*"
+      - "scripts/check-merge-review-contract.sh"
+      - "dev-docs/wave17/**"
+      - "package.json"
+      - ".github/workflows/wave17-merge-review-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave17-merge-review:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install deps
+        run: npm ci
+
+      - name: merge review contract
+        run: npm run -s check:merge-review-contract

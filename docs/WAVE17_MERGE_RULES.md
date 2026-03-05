@@ -39,6 +39,9 @@ They define deterministic outcomes for candidate branch heads.
 - Result:
   - result determined by referenced arbitration artifact digest.
 
+Conflict bundle ABI reference: `docs/WAVE17_CONFLICT_BUNDLE_ABI.md`.
+Advisory merge-review ABI reference: `docs/WAVE17_MERGE_REVIEW_ABI.md`.
+
 ### `majority_vote`
 
 - Preconditions:
