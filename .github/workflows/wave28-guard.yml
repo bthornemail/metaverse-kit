@@ -1,0 +1,44 @@
+name: wave28 guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE28_*"
+      - "docs/tools/mv-poly-*.md"
+      - "docs/tools/mv-poly-signal-project.md"
+      - "apps/client/src/components/Wave28Panel.tsx"
+      - "apps/client/src/wave28/**"
+      - "tools/mv-poly-basis/**"
+      - "tools/mv-poly-closed-config/**"
+      - "tools/mv-poly-decompose/**"
+      - "tools/mv-poly-signal-project/**"
+      - "tools/wave28-poly-lib.js"
+      - "scripts/check-client-wave28-panel.sh"
+      - "scripts/check-client-wave28-fixtures.sh"
+      - "scripts/wave28-*"
+      - "scripts/check-wave28-*"
+      - "dev-docs/wave28/**"
+      - "package.json"
+      - ".github/workflows/wave28-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave28:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: install deps
+        run: npm ci
+      - name: wave28 doc freeze
+        run: npm run -s check:wave28-doc-freeze
+      - name: wave28 contract
+        run: npm run -s check:wave28-contract
+      - name: client wave28 panel guard
+        run: npm run -s check:client:wave28-panel

@@ -16,6 +16,7 @@ import StatusBar from './components/StatusBar';
 import PalettePanel from './components/PalettePanel';
 import LibraryPanel from './components/LibraryPanel';
 import ImportsPanel from './components/ImportsPanel';
+import Wave28Panel from './components/Wave28Panel';
 import MiniMap2D from './components/MiniMap2D';
 import InspectorPanel from './components/InspectorPanel';
 import { STENCIL_PACKS, findStencil } from './editor/stencils';
@@ -225,7 +226,7 @@ export default function App() {
   const [historyGroupWindowMs, setHistoryGroupWindowMs] = useState(1500);
   const [palettePinned, setPalettePinned] = useState(false);
   const [inspectorPinned, setInspectorPinned] = useState(false);
-  const [leftPanelMode, setLeftPanelMode] = useState<'stencils' | 'library' | 'imports'>('stencils');
+  const [leftPanelMode, setLeftPanelMode] = useState<'stencils' | 'library' | 'imports' | 'wave28'>('stencils');
   const [libraryMode, setLibraryMode] = useState<'edit' | 'explore'>('edit');
   const [libraryCategory, setLibraryCategory] = useState<'all' | 'svg' | '3d' | 'media' | 'documents'>('all');
   const [importPacks, setImportPacks] = useState<Ext32Pack[]>([]);
@@ -2320,7 +2321,7 @@ export default function App() {
             category={libraryCategory}
             setCategory={setLibraryCategory}
           />
-        ) : (
+        ) : leftPanelMode === 'imports' ? (
           <ImportsPanel
             packs={importPacks}
             onImportFiles={async (files) => {
@@ -2344,6 +2345,8 @@ export default function App() {
               return true;
             }}
           />
+        ) : (
+          <Wave28Panel projectionPathHint="dev-docs/wave28/signal-poly-projection.v0.json" />
         )
       ) : null}
       {viewMode === '2d' && uiConfig.showInspector ? (
@@ -2611,6 +2614,23 @@ export default function App() {
           }}
         >
           Imports
+        </button>
+        <button
+          onClick={() => {
+            setLeftPanelMode('wave28');
+            setLibraryMode('edit');
+          }}
+          style={{
+            padding: uiButtonPadding,
+            background: leftPanelMode === 'wave28' ? '#d38a2b' : '#222',
+            color: leftPanelMode === 'wave28' ? '#fff' : '#aaa',
+            border: '1px solid ' + (leftPanelMode === 'wave28' ? '#d38a2b' : '#333'),
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: uiFontSize,
+          }}
+        >
+          Signal Poly
         </button>
         <button
           onClick={() => {
