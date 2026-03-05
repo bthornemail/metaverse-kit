@@ -1,0 +1,41 @@
+name: wave30 guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE30_*"
+      - "docs/tools/mv-evidence-bundle.md"
+      - "docs/tools/mv-evidence-surface.md"
+      - "tools/mv-evidence-bundle/**"
+      - "tools/mv-evidence-surface/**"
+      - "scripts/wave30-*"
+      - "scripts/check-wave30-*"
+      - "scripts/check-wave30-proof-receipt.sh"
+      - "scripts/closure-spine-smoke.sh"
+      - "dev-docs/wave30/**"
+      - "docs/proofs/wave30.latest.md"
+      - "docs/proofs/closure-spine-smoke.latest.md"
+      - "package.json"
+      - ".github/workflows/wave30-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave30:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: install deps
+        run: npm ci
+      - name: wave30 doc freeze
+        run: npm run -s check:wave30-doc-freeze
+      - name: wave30 contract
+        run: npm run -s check:wave30-contract
+      - name: wave30 proof receipt
+        run: npm run -s check:wave30-proof-receipt

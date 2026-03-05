@@ -1,0 +1,8 @@
+{
+  "name": "@metaverse-kit/mv-action-plan",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mv-action-plan": "index.js"
+  }
+}
