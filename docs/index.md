@@ -27,6 +27,8 @@ A local-first, event-sourced metaverse toolkit with deterministic replay, multi-
 - Wave16 Interaction Tape ABI: `docs/WAVE16_INTERACTION_EVENT_ABI.md`
 - Wave16 Template Generator ABI: `docs/WAVE16_TEMPLATE_GENERATOR_ABI.md`
 - Wave17 Shared Tape ABI: `docs/WAVE17_SHARED_TAPE_ABI.md`
+- Wave17 Conflict Bundle ABI: `docs/WAVE17_CONFLICT_BUNDLE_ABI.md`
+- Wave17 Merge Review ABI: `docs/WAVE17_MERGE_REVIEW_ABI.md`
 - Wave17 Merge Rules: `docs/WAVE17_MERGE_RULES.md`
 - Wave18 Avatar Role ABI: `docs/WAVE18_AVATAR_ROLE_ABI.md`
 - Wave18 Dialogue Grammar ABI: `docs/WAVE18_DIALOGUE_GRAMMAR_ABI.md`
@@ -40,6 +42,20 @@ A local-first, event-sourced metaverse toolkit with deterministic replay, multi-
 - Wave24 Federation ABI: `docs/WAVE24_FEDERATION_ABI.md`
 - Wave25 Provider Axis ABI: `docs/WAVE25_PROVIDER_AXIS_ABI.md`
 - Wave26 Consumer Axis ABI: `docs/WAVE26_CONSUMER_AXIS_ABI.md`
+- Wave27 Pointer Sync ABI: `docs/WAVE27_POINTER_SYNC_ABI.md`
+- Wave27 Pointer Sync Functions: `docs/WAVE27_POINTER_SYNC_FUNCTIONS.md`
+- Wave27 Trace Spine ABI: `docs/WAVE27_TRACE_SPINE_ABI.md`
+- Wave28 Zero Poly Basis ABI: `docs/WAVE28_ZERO_POLY_BASIS_ABI.md`
+- Wave28 Closed Config ABI: `docs/WAVE28_CLOSED_CONFIG_ABI.md`
+- Wave28 Poly Decomp ABI: `docs/WAVE28_POLY_DECOMP_ABI.md`
+- Wave29 Action Plan ABI: `docs/WAVE29_ACTION_PLAN_ABI.md`
+- Wave29 Action Plan Functions: `docs/WAVE29_ACTION_PLAN_FUNCTIONS.md`
+- Wave30 Evidence Bundle ABI: `docs/WAVE30_EVIDENCE_BUNDLE_ABI.md`
+- Wave30 Evidence Surface Chords ABI: `docs/WAVE30_EVIDENCE_SURFACE_CHORDS_ABI.md`
+- Wave30 Evidence Surface Frames ABI: `docs/WAVE30_EVIDENCE_SURFACE_FRAMES_ABI.md`
+- Wave30 Evidence Surface Emitter Frames ABI: `docs/WAVE30_EVIDENCE_SURFACE_EMITTER_FRAMES_ABI.md`
+- Wave30 Evidence Surface UART Packets ABI: `docs/WAVE30_EVIDENCE_SURFACE_UART_PACKETS_ABI.md`
+- Wave30 Evidence Surface Functions: `docs/WAVE30_EVIDENCE_SURFACE_FUNCTIONS.md`
 - Branch Plan (Path B + D): `docs/BRANCH_PLAN_B_D.md`
 - Executable Narrative IR (research note): `docs/RESEARCH_EXECUTABLE_NARRATIVE_IR.md`
 - External Tester Evaluation Plan: `docs/EVAL_PLAN_EXTERNAL_TESTERS.md`
@@ -49,6 +65,12 @@ A local-first, event-sourced metaverse toolkit with deterministic replay, multi-
 - Release Notes: `RELEASE_NOTES.md`
 - Release Runbook: `docs/release-runbook-v0.1.md`
 - Announcement Draft: `docs/announcement-v0.1.md`
+- Latest closure proof receipt: `docs/proofs/closure-spine-smoke.latest.md`
+- Latest Wave17 merge-review render proof receipt: `docs/proofs/wave17-merge-review-render.latest.md`
+- Latest Wave27 pointer sync proof receipt: `docs/proofs/wave27-pointer-sync.latest.md`
+- Latest Wave28 proof receipt: `docs/proofs/wave28.latest.md`
+- Latest Wave29 proof receipt: `docs/proofs/wave29.latest.md`
+- Latest Wave30 proof receipt: `docs/proofs/wave30.latest.md`
 - Implementation Plan: `dev-docs/PLANS/Implementation Plan.md`
 - SPABBS RFC: `dev-docs/1007 - RFC - Staged Polymorphic Automaton with Blackboard Semantics (SPABBS).md`
 - BASIS32/EXT32: `dev-docs/1008 - BASIS32 -- EXT32 - Layered Blackboard Identity for Projective, Federated Worlds.md`
@@ -81,6 +103,17 @@ A local-first, event-sourced metaverse toolkit with deterministic replay, multi-
   - `docs/tools/mv-interaction-tape.md`
   - `docs/tools/mv-template-generate.md`
   - `docs/tools/mv-shared-tape.md`
+  - `docs/tools/mv-conflict-bundle.md`
+  - `docs/tools/mv-merge-review.md`
+  - `docs/tools/mv-merge-review-render.md`
+  - `docs/tools/mv-pointer-sync.md`
+  - `docs/tools/mv-poly-basis.md`
+  - `docs/tools/mv-poly-closed-config.md`
+  - `docs/tools/mv-poly-decompose.md`
+  - `docs/tools/mv-poly-signal-project.md`
+  - `docs/tools/mv-action-plan.md`
+  - `docs/tools/mv-evidence-bundle.md`
+  - `docs/tools/mv-evidence-surface.md`
   - `docs/tools/mv-avatar-role.md`
   - `docs/tools/mv-dialogue-grammar.md`
   - `docs/tools/mv-entity-model.md`

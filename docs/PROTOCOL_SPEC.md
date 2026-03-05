@@ -26,7 +26,7 @@ Unless an ABI says otherwise:
 
 NDJSON logs must be one canonical JSON object per line, newline-terminated, and must not contain trailing bytes after the final newline.
 
-## Protocol surface (Waves 16-26)
+## Protocol surface (Waves 16-30)
 
 The “wave” stack is a set of frozen ABIs + validators that define world structure and closure properties.
 
@@ -47,10 +47,14 @@ Docs:
 ### Wave 17: Shared tape and merge rules
 
 - Shared interaction memory and deterministic merge semantics.
+- Conflict bundles for deterministic side-by-side world diffing: `wave17.conflict_bundle.v0` (advisory).
+- Merge review packets for deterministic conflict presentation: `wave17.merge_review.v0` (advisory).
 
 Docs:
 
 - `docs/WAVE17_SHARED_TAPE_ABI.md`
+- `docs/WAVE17_CONFLICT_BUNDLE_ABI.md`
+- `docs/WAVE17_MERGE_REVIEW_ABI.md`
 - `docs/WAVE17_MERGE_RULES.md`
 
 ### Wave 18: Ontology and dialogue grammar
@@ -137,6 +141,54 @@ Docs:
 
 - `docs/WAVE26_CONSUMER_AXIS_ABI.md`
 
+### Wave 27: Pointer sync and trace spine (experimental advisory)
+
+- Deterministic pointer sync projection with frozen function IDs and constants.
+- Advisory trace-to-Merkle spine mapping for inclusion proofs and partial replay.
+
+Docs:
+
+- `docs/WAVE27_POINTER_SYNC_ABI.md`
+- `docs/WAVE27_POINTER_SYNC_FUNCTIONS.md`
+- `docs/WAVE27_TRACE_SPINE_ABI.md`
+
+### Wave 28: Advisory algebra engine (experimental advisory)
+
+- Deterministic F2 basis/config/decomposition surfaces for advisory algebraic projection.
+- No canonical mutation; projection-only artifacts with strict replay verification.
+
+Docs:
+
+- `docs/WAVE28_ZERO_POLY_BASIS_ABI.md`
+- `docs/WAVE28_CLOSED_CONFIG_ABI.md`
+- `docs/WAVE28_POLY_DECOMP_ABI.md`
+
+### Wave 29: Advisory action plan bridge (experimental advisory)
+
+- Deterministic bridge that maps verified Wave28 (and optional Wave17/Wave27 evidence) into advisory Wave20 action plans.
+- Plans are replay-verifiable and projection-only; they do not execute or mutate canonical state.
+
+Docs:
+
+- `docs/WAVE29_ACTION_PLAN_ABI.md`
+- `docs/WAVE29_ACTION_PLAN_FUNCTIONS.md`
+
+### Wave 30: Evidence bundle + physical chord surface (experimental advisory)
+
+- Deterministic advisory packaging of evidence references (`wave30.evidence_bundle.v0`).
+- Deterministic advisory LED chord surface derived from bundle digest (`wave30.evidence_surface.chords.v0`).
+- Deterministic advisory LED frame stream over 240 ring (`wave30.evidence_surface_frame.v0` NDJSON).
+- Spiral visuals are renderer-only and non-canonical.
+
+Docs:
+
+- `docs/WAVE30_EVIDENCE_BUNDLE_ABI.md`
+- `docs/WAVE30_EVIDENCE_SURFACE_CHORDS_ABI.md`
+- `docs/WAVE30_EVIDENCE_SURFACE_FRAMES_ABI.md`
+- `docs/WAVE30_EVIDENCE_SURFACE_EMITTER_FRAMES_ABI.md`
+- `docs/WAVE30_EVIDENCE_SURFACE_UART_PACKETS_ABI.md`
+- `docs/WAVE30_EVIDENCE_SURFACE_FUNCTIONS.md`
+
 ## Compatibility and change control
 
 Protocol semantics are frozen per version line.
@@ -159,4 +211,3 @@ If you are implementing a toolchain or interpreter:
 - recompute and verify digests (fail closed)
 - treat `advisory` artifacts as non-authoritative
 - never accept portal/UI output as canonical state without explicit acceptance flow
-
