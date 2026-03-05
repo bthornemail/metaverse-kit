@@ -1,0 +1,176 @@
+{
+  "actions": [
+    {
+      "evidence": [
+        {
+          "digest": "sha256:0cb933ff584402957c28ee6a2ce9b394ef4814c8ec37b5a70e9f0261b89ed2a5",
+          "role": "projection"
+        }
+      ],
+      "params": {
+        "bitmask": "000011",
+        "degree": "2",
+        "source_poly": "x1+x1*x2+x1*x2*x3+x5+x2*x5+x3*x4*x5+x2*x3*x4*x5+x4*x6+x1*x3*x4*x6+x4*x5*x6",
+        "target": "x1*x2"
+      },
+      "step": "2",
+      "verb": "FOCUS_CLUSTER"
+    },
+    {
+      "evidence": [
+        {
+          "digest": "sha256:0cb933ff584402957c28ee6a2ce9b394ef4814c8ec37b5a70e9f0261b89ed2a5",
+          "role": "projection"
+        }
+      ],
+      "params": {
+        "bitmask": "000001",
+        "degree": "1",
+        "source_poly": "x1+x1*x2+x1*x2*x3+x5+x2*x5+x3*x4*x5+x2*x3*x4*x5+x4*x6+x1*x3*x4*x6+x4*x5*x6",
+        "target": "x1"
+      },
+      "step": "1",
+      "verb": "FOCUS_CLUSTER"
+    },
+    {
+      "evidence": [
+        {
+          "digest": "sha256:0cb933ff584402957c28ee6a2ce9b394ef4814c8ec37b5a70e9f0261b89ed2a5",
+          "role": "projection"
+        }
+      ],
+      "params": {
+        "bitmask": "000111",
+        "degree": "3",
+        "source_poly": "x1+x1*x2+x1*x2*x3+x5+x2*x5+x3*x4*x5+x2*x3*x4*x5+x4*x6+x1*x3*x4*x6+x4*x5*x6",
+        "target": "x1*x2*x3"
+      },
+      "step": "3",
+      "verb": "TRACE_LINEAGE"
+    },
+    {
+      "evidence": [
+        {
+          "digest": "sha256:0cb933ff584402957c28ee6a2ce9b394ef4814c8ec37b5a70e9f0261b89ed2a5",
+          "role": "projection"
+        }
+      ],
+      "params": {
+        "bitmask": "010000",
+        "degree": "1",
+        "source_poly": "x1+x1*x2+x1*x2*x3+x5+x2*x5+x3*x4*x5+x2*x3*x4*x5+x4*x6+x1*x3*x4*x6+x4*x5*x6",
+        "target": "x5"
+      },
+      "step": "4",
+      "verb": "FOCUS_CLUSTER"
+    },
+    {
+      "evidence": [
+        {
+          "digest": "sha256:0cb933ff584402957c28ee6a2ce9b394ef4814c8ec37b5a70e9f0261b89ed2a5",
+          "role": "projection"
+        }
+      ],
+      "params": {
+        "bitmask": "010010",
+        "degree": "2",
+        "source_poly": "x1+x1*x2+x1*x2*x3+x5+x2*x5+x3*x4*x5+x2*x3*x4*x5+x4*x6+x1*x3*x4*x6+x4*x5*x6",
+        "target": "x2*x5"
+      },
+      "step": "5",
+      "verb": "FOCUS_CLUSTER"
+    },
+    {
+      "evidence": [
+        {
+          "digest": "sha256:0cb933ff584402957c28ee6a2ce9b394ef4814c8ec37b5a70e9f0261b89ed2a5",
+          "role": "projection"
+        }
+      ],
+      "params": {
+        "bitmask": "011100",
+        "degree": "3",
+        "source_poly": "x1+x1*x2+x1*x2*x3+x5+x2*x5+x3*x4*x5+x2*x3*x4*x5+x4*x6+x1*x3*x4*x6+x4*x5*x6",
+        "target": "x3*x4*x5"
+      },
+      "step": "6",
+      "verb": "TRACE_LINEAGE"
+    },
+    {
+      "evidence": [
+        {
+          "digest": "sha256:0cb933ff584402957c28ee6a2ce9b394ef4814c8ec37b5a70e9f0261b89ed2a5",
+          "role": "projection"
+        }
+      ],
+      "params": {
+        "bitmask": "011110",
+        "degree": "4",
+        "source_poly": "x1+x1*x2+x1*x2*x3+x5+x2*x5+x3*x4*x5+x2*x3*x4*x5+x4*x6+x1*x3*x4*x6+x4*x5*x6",
+        "target": "x2*x3*x4*x5"
+      },
+      "step": "7",
+      "verb": "TRACE_LINEAGE"
+    },
+    {
+      "evidence": [
+        {
+          "digest": "sha256:0cb933ff584402957c28ee6a2ce9b394ef4814c8ec37b5a70e9f0261b89ed2a5",
+          "role": "projection"
+        }
+      ],
+      "params": {
+        "bitmask": "101000",
+        "degree": "2",
+        "source_poly": "x1+x1*x2+x1*x2*x3+x5+x2*x5+x3*x4*x5+x2*x3*x4*x5+x4*x6+x1*x3*x4*x6+x4*x5*x6",
+        "target": "x4*x6"
+      },
+      "step": "8",
+      "verb": "FOCUS_CLUSTER"
+    },
+    {
+      "evidence": [
+        {
+          "digest": "sha256:0cb933ff584402957c28ee6a2ce9b394ef4814c8ec37b5a70e9f0261b89ed2a5",
+          "role": "projection"
+        }
+      ],
+      "params": {
+        "bitmask": "101101",
+        "degree": "4",
+        "source_poly": "x1+x1*x2+x1*x2*x3+x5+x2*x5+x3*x4*x5+x2*x3*x4*x5+x4*x6+x1*x3*x4*x6+x4*x5*x6",
+        "target": "x1*x3*x4*x6"
+      },
+      "step": "9",
+      "verb": "TRACE_LINEAGE"
+    },
+    {
+      "evidence": [
+        {
+          "digest": "sha256:0cb933ff584402957c28ee6a2ce9b394ef4814c8ec37b5a70e9f0261b89ed2a5",
+          "role": "projection"
+        }
+      ],
+      "params": {
+        "bitmask": "111000",
+        "degree": "3",
+        "source_poly": "x1+x1*x2+x1*x2*x3+x5+x2*x5+x3*x4*x5+x2*x3*x4*x5+x4*x6+x1*x3*x4*x6+x4*x5*x6",
+        "target": "x4*x5*x6"
+      },
+      "step": "10",
+      "verb": "TRACE_LINEAGE"
+    }
+  ],
+  "authority": "advisory",
+  "digest": "sha256:058813236b132ca353ef3058f4a25279ddd28b63d4dd0abde57b615aff772145",
+  "inputs": [
+    {
+      "digest": "sha256:0cb933ff584402957c28ee6a2ce9b394ef4814c8ec37b5a70e9f0261b89ed2a5",
+      "v": "wave28.signal_poly_projection.v0"
+    }
+  ],
+  "notes": [],
+  "plan_map_id": "wave29.plan_map.poly_to_wave20.v0",
+  "plan_norm_id": "wave29.plan_norm.step_lex.v0",
+  "v": "wave29.action_plan.v0"
+}
