@@ -1,0 +1,8 @@
+{
+  "name": "@metaverse-kit/mv-evidence-surface",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mv-evidence-surface": "index.js"
+  }
+}
