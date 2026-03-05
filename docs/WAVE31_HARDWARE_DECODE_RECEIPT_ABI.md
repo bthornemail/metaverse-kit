@@ -29,6 +29,7 @@ Top-level keyset (exact):
 - `authority`
 - `decode_profile_id`
 - `surface_digest`
+- `packet_stream_digest`
 - `uart_crc`
 - `packet_count`
 - `decode_ok`
@@ -42,11 +43,12 @@ Rules:
 - `authority` must be `advisory`
 - `decode_profile_id` must be `wave31.decode_profile.esp32_uart.v0`
 - `surface_digest` must reference the input `wave30.evidence_surface.chords.v0` digest
+- `packet_stream_digest` must reference canonical NDJSON digest of decoded `wave30.evidence_surface_uart_packet.esp32.v0` stream
 - `uart_crc` must be `none` or `crc8-xor-v0`
 - `packet_count` is decimal string integer `>= 0`
-- `decode_ok` must be `true` or `false` (string)
+- `decode_ok` must be `0` or `1`
 - `error_count` is decimal string integer `>= 0`
-- `first_error_code` is `none` when `decode_ok=true`, otherwise a stable string code
+- `first_error_code` is `none` when `decode_ok=1`, otherwise a stable string code
 - `digest` must match canonical payload hash without `digest`
 
 ## Must-Reject
@@ -59,6 +61,6 @@ Reject on:
 - unknown `decode_profile_id`
 - malformed digest fields
 - `uart_crc` outside allowed enum
-- `decode_ok=true` with `error_count != 0`
-- `decode_ok=true` with `first_error_code != none`
+- `decode_ok=1` with `error_count != 0`
+- `decode_ok=1` with `first_error_code != none`
 - digest mismatch

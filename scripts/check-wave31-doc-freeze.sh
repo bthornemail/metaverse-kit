@@ -23,16 +23,21 @@ require_literal "$D1" 'Type: `wave31.hardware_decode_receipt.v0`.'
 require_literal "$D1" 'decode_profile_id = "wave31.decode_profile.esp32_uart.v0"'
 require_literal "$D1" '`authority` must be `advisory`'
 require_literal "$D1" '`uart_crc` must be `none` or `crc8-xor-v0`'
+require_literal "$D1" '`packet_stream_digest` must reference canonical NDJSON digest of decoded `wave30.evidence_surface_uart_packet.esp32.v0` stream'
+require_literal "$D1" '`decode_ok` must be `0` or `1`'
+require_literal "$D1" '`decode_ok=1` with `error_count != 0`'
 
 require_literal "$D2" 'Type: `wave31.frame_verify_result.v0`.'
 require_literal "$D2" 'frame_verify_id = "wave31.frame_verify.leds240.v0"'
 require_literal "$D2" '`authority` must be `advisory`'
-require_literal "$D2" '`verify_ok=true` with `mismatch_count != 0`'
+require_literal "$D2" '`frame_type` must be `wave30.evidence_surface_emitter_frame.esp32.v0`'
+require_literal "$D2" '`verify_ok` must be `0` or `1`'
+require_literal "$D2" '`verify_ok=1` with `mismatch_count != 0`'
 
-for k in v authority decode_profile_id surface_digest uart_crc packet_count decode_ok error_count first_error_code digest; do
+for k in v authority decode_profile_id surface_digest packet_stream_digest uart_crc packet_count decode_ok error_count first_error_code digest; do
   require_literal "$D1" "- \`$k\`"
 done
-for k in v authority frame_verify_id surface_digest frame_stream_digest frame_count verify_ok mismatch_count first_mismatch_t digest; do
+for k in v authority frame_verify_id frame_type surface_digest frame_stream_digest frame_count verify_ok mismatch_count first_mismatch_t digest; do
   require_literal "$D2" "- \`$k\`"
 done
 

@@ -28,6 +28,7 @@ Top-level keyset (exact):
 - `v`
 - `authority`
 - `frame_verify_id`
+- `frame_type`
 - `surface_digest`
 - `frame_stream_digest`
 - `frame_count`
@@ -41,12 +42,13 @@ Rules:
 - `v` must be `wave31.frame_verify_result.v0`
 - `authority` must be `advisory`
 - `frame_verify_id` must be `wave31.frame_verify.leds240.v0`
+- `frame_type` must be `wave30.evidence_surface_emitter_frame.esp32.v0`
 - `surface_digest` must reference the input `wave30.evidence_surface.chords.v0` digest
-- `frame_stream_digest` must reference canonical NDJSON digest of compared frame stream
+- `frame_stream_digest` must reference canonical NDJSON digest of compared `frame_type` stream
 - `frame_count` is decimal string integer `>= 0`
-- `verify_ok` must be `true` or `false` (string)
+- `verify_ok` must be `0` or `1`
 - `mismatch_count` is decimal string integer `>= 0`
-- `first_mismatch_t` is `none` when `verify_ok=true`, otherwise decimal string frame index
+- `first_mismatch_t` is `none` when `verify_ok=1`, otherwise decimal string frame index
 - `digest` must match canonical payload hash without `digest`
 
 ## Must-Reject
@@ -57,7 +59,8 @@ Reject on:
 - non-string leaves
 - authority not `advisory`
 - unknown `frame_verify_id`
+- `frame_type` outside allowed enum
 - malformed digest fields
-- `verify_ok=true` with `mismatch_count != 0`
-- `verify_ok=true` with `first_mismatch_t != none`
+- `verify_ok=1` with `mismatch_count != 0`
+- `verify_ok=1` with `first_mismatch_t != none`
 - digest mismatch
