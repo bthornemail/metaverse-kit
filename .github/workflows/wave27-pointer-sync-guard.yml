@@ -1,0 +1,38 @@
+name: wave27 pointer sync guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE27_*"
+      - "docs/tools/mv-pointer-sync.md"
+      - "tools/mv-pointer-sync/**"
+      - "scripts/wave27-pointer-sync-*"
+      - "scripts/check-pointer-sync-contract.sh"
+      - "scripts/check-wave27-doc-freeze.sh"
+      - "dev-docs/wave27/**"
+      - "package.json"
+      - ".github/workflows/wave27-pointer-sync-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave27-pointer-sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install deps
+        run: npm ci
+
+      - name: wave27 doc freeze
+        run: npm run -s check:wave27-doc-freeze
+
+      - name: pointer sync contract
+        run: npm run -s check:pointer-sync-contract
