@@ -1,0 +1,8 @@
+{
+  "name": "@metaverse-kit/mv-evidence-bundle",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mv-evidence-bundle": "index.js"
+  }
+}
