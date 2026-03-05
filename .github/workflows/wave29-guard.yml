@@ -1,0 +1,39 @@
+name: wave29 guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE29_*"
+      - "docs/tools/mv-action-plan.md"
+      - "tools/mv-action-plan/**"
+      - "scripts/wave29-*"
+      - "scripts/check-wave29-*"
+      - "scripts/check-wave29-proof-receipt.sh"
+      - "scripts/closure-spine-smoke.sh"
+      - "dev-docs/wave29/**"
+      - "docs/proofs/wave29.latest.md"
+      - "docs/proofs/closure-spine-smoke.latest.md"
+      - "package.json"
+      - ".github/workflows/wave29-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave29:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: install deps
+        run: npm ci
+      - name: wave29 doc freeze
+        run: npm run -s check:wave29-doc-freeze
+      - name: wave29 contract
+        run: npm run -s check:wave29-contract
+      - name: wave29 proof receipt
+        run: npm run -s check:wave29-proof-receipt

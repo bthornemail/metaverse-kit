@@ -1,0 +1,29 @@
+name: wave29 doc freeze guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE29_*"
+      - "docs/PROTOCOL_SPEC.md"
+      - "docs/index.md"
+      - "scripts/check-wave29-doc-freeze.sh"
+      - "package.json"
+      - ".github/workflows/wave29-doc-freeze-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave29-doc-freeze:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: install deps
+        run: npm ci
+      - name: wave29 doc freeze
+        run: npm run -s check:wave29-doc-freeze
