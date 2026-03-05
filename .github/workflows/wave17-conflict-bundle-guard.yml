@@ -1,0 +1,33 @@
+name: wave17 conflict bundle guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE17_*"
+      - "tools/mv-conflict-bundle/**"
+      - "scripts/wave17-conflict-*"
+      - "scripts/check-conflict-bundle-contract.sh"
+      - "dev-docs/wave17/**"
+      - "package.json"
+      - ".github/workflows/wave17-conflict-bundle-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave17-conflict-bundle:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install deps
+        run: npm ci
+
+      - name: conflict bundle contract
+        run: npm run -s check:conflict-bundle-contract

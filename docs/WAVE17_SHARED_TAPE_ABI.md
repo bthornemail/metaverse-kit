@@ -2,6 +2,9 @@
 
 Status: branch freeze (design contract only).
 
+Companion advisory diff artifact: `wave17.conflict_bundle.v0` (see `docs/WAVE17_CONFLICT_BUNDLE_ABI.md`).
+Companion advisory review artifact: `wave17.merge_review.v0` (see `docs/WAVE17_MERGE_REVIEW_ABI.md`).
+
 ## Purpose
 
 `wave17.shared_tape.v0` defines a deterministic, append-only collaboration surface for multiple authors.
