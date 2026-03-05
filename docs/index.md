@@ -8,6 +8,8 @@ A local-first, event-sourced metaverse toolkit with deterministic replay, multi-
 - Quick Start: `QUICKSTART.md`
 - Publishing: `PUBLISHING.md`
 - Architecture: `docs/ARCHITECTURE.md`
+- Contributing: `CONTRIBUTING.md`
+- Protocol Spec: `docs/PROTOCOL_SPEC.md`
 - Governance: `docs/GOVERNANCE.md`
 - Threat Model: `docs/THREAT_MODEL.md`
 - Key Rotation: `docs/KEY_ROTATION.md`
@@ -19,6 +21,7 @@ A local-first, event-sourced metaverse toolkit with deterministic replay, multi-
 - Public Release Plan: `docs/PUBLIC_RELEASE_PLAN.md`
 - Package Review Report: `docs/PACKAGE_REVIEW.md`
 - Reproducible Build Guide: `docs/REPRODUCIBLE_BUILD.md`
+- Termux Frozen Env: `docs/termux/TERMUX_FROZEN_ENV.md`
 - Narrative Portal Mode: `docs/NARRATIVE_PORTAL_MODE.md`
 - Wave16 Narrative State ABI: `docs/WAVE16_NARRATIVE_STATE_ABI.md`
 - Wave16 Interaction Tape ABI: `docs/WAVE16_INTERACTION_EVENT_ABI.md`

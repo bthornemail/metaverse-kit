@@ -115,6 +115,12 @@ metaverse-kit/
 - Node.js >= 18.0.0
 - npm >= 9.0.0
 
+### Contributor + Protocol docs
+
+- Contributor onboarding: `CONTRIBUTING.md`
+- Protocol spec index: `docs/PROTOCOL_SPEC.md`
+- Full documentation index: `docs/index.md`
+
 ### Installation
 
 ```bash
