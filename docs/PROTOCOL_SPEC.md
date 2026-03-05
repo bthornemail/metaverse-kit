@@ -189,6 +189,16 @@ Docs:
 - `docs/WAVE30_EVIDENCE_SURFACE_UART_PACKETS_ABI.md`
 - `docs/WAVE30_EVIDENCE_SURFACE_FUNCTIONS.md`
 
+### Wave 31: Hardware decode verifier receipts (experimental advisory)
+
+- Deterministic advisory receipts for hardware decode and frame verification over Wave30 transport surfaces.
+- No authority elevation; these artifacts report verification outcomes only.
+
+Docs:
+
+- `docs/WAVE31_HARDWARE_DECODE_RECEIPT_ABI.md`
+- `docs/WAVE31_FRAME_VERIFY_RESULT_ABI.md`
+
 ## Compatibility and change control
 
 Protocol semantics are frozen per version line.
