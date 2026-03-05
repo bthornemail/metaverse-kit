@@ -1,0 +1,1 @@
+{"edges":[{"direction":"outbound","from":"node:room","id":"edge:room-desk","label":"contains","to":"node:desk"},{"direction":"outbound","from":"node:room","id":"edge:room-lamp","label":"controls","to":"node:lamp"}],"nodes":[{"id":"node:desk","kind":"entity","value":"oak"},{"id":"node:lamp","kind":"entity","value":"on"},{"id":"node:room","kind":"space","value":"alpha"}]}

@@ -1,0 +1,1 @@
+{"edges":[{"direction":"outbound","from":"node:room","id":"edge:room-lamp","label":"contains","to":"node:lamp"},{"direction":"outbound","from":"node:room","id":"edge:room-door","label":"contains","to":"node:door"}],"nodes":[{"id":"node:door","kind":"entity","value":"closed"},{"id":"node:lamp","kind":"entity","value":"off"},{"id":"node:room","kind":"space","value":"alpha"}]}
