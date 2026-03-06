@@ -1,0 +1,34 @@
+name: wave31 device parity plan
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE31_DEVICE_PARITY_HARNESS.md"
+      - "dev-docs/wave31/device-parity/**"
+      - "scripts/check-wave31-device-parity-plan.sh"
+      - "package.json"
+      - ".github/workflows/wave31-device-parity-plan.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave31-device-parity-plan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: install deps
+        run: npm ci
+      - name: wave31 doc freeze
+        run: npm run -s check:wave31-doc-freeze
+      - name: wave31 host decode roundtrip
+        run: npm run -s check:wave31-esp32-decode-roundtrip
+      - name: wave31 frame verify contract
+        run: npm run -s check:wave31-frame-verify-contract
+      - name: wave31 device parity plan
+        run: npm run -s check:wave31-device-parity-plan

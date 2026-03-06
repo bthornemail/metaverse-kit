@@ -9,6 +9,7 @@ Commands:
 npm run -s check:wave31-doc-freeze
 npm run -s check:wave31-esp32-decode-roundtrip
 npm run -s check:wave31-frame-verify-contract
+npm run -s check:wave31-device-parity-plan
 ```
 
 Output highlights:
@@ -19,4 +20,5 @@ ok wave31 esp32 decode roundtrip
 ok wave31 esp32 decode roundtrip guard
 ok wave31 frame verify contract
 ok wave31 frame verify contract guard
+ok wave31 device parity plan guard
 ```

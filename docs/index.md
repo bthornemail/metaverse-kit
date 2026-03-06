@@ -55,6 +55,7 @@ A local-first, event-sourced metaverse toolkit with deterministic replay, multi-
 - Wave30 Evidence Surface Functions: `docs/WAVE30_EVIDENCE_SURFACE_FUNCTIONS.md`
 - Wave31 Hardware Decode Receipt ABI: `docs/WAVE31_HARDWARE_DECODE_RECEIPT_ABI.md`
 - Wave31 Frame Verify Result ABI: `docs/WAVE31_FRAME_VERIFY_RESULT_ABI.md`
+- Wave31 Device Parity Harness: `docs/WAVE31_DEVICE_PARITY_HARNESS.md`
 - Branch Plan (Path B + D): `docs/BRANCH_PLAN_B_D.md`
 - Executable Narrative IR (research note): `docs/RESEARCH_EXECUTABLE_NARRATIVE_IR.md`
 - External Tester Evaluation Plan: `docs/EVAL_PLAN_EXTERNAL_TESTERS.md`

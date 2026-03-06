@@ -198,6 +198,7 @@ Docs:
 
 - `docs/WAVE31_HARDWARE_DECODE_RECEIPT_ABI.md`
 - `docs/WAVE31_FRAME_VERIFY_RESULT_ABI.md`
+- `docs/WAVE31_DEVICE_PARITY_HARNESS.md`
 
 ## Compatibility and change control
 
