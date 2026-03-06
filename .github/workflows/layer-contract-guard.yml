@@ -1,0 +1,30 @@
+name: layer contract guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/LAYER_CONTRACT_AUTHORITY_METAVERSE_KIT.md"
+      - "docs/apps/LAYER_CONTRACT_PROJECTION_APPS.md"
+      - "docs/templates/LAYER_CONTRACT.md"
+      - "docs/index.md"
+      - "scripts/check-layer-contracts.sh"
+      - "package.json"
+      - ".github/workflows/layer-contract-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  layer-contract:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: install deps
+        run: npm ci
+      - name: layer contract guard
+        run: npm run -s check:layer-contracts

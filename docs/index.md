@@ -115,6 +115,7 @@ A local-first, event-sourced metaverse toolkit with deterministic replay, multi-
   - `docs/tools/mv-action-plan.md`
   - `docs/tools/mv-evidence-bundle.md`
   - `docs/tools/mv-evidence-surface.md`
+  - `docs/tools/mv-runtime-handoff.md`
   - `docs/tools/mv-avatar-role.md`
   - `docs/tools/mv-dialogue-grammar.md`
   - `docs/tools/mv-entity-model.md`
@@ -146,6 +147,11 @@ A local-first, event-sourced metaverse toolkit with deterministic replay, multi-
   - `docs/packages.md` (sections: "Runtime hierarchy (declared)", "Rumsfeld matrix (runtime landscape)")
 - New component contract template:
   - `docs/templates/LAYER_CONTRACT.md`
+- Concrete layer contracts:
+  - `docs/LAYER_CONTRACT_AUTHORITY_METAVERSE_KIT.md`
+  - `docs/LAYER_CONTRACT_RUNTIME_BRIDGE.md`
+  - `docs/LAYER_CONTRACT_RUNTIME_HANDOFF_METAVERSE_BUILD.md`
+  - `docs/apps/LAYER_CONTRACT_PROJECTION_APPS.md`
 
 ## Full Spine (Explicit)
 

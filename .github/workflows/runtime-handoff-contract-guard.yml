@@ -1,0 +1,29 @@
+name: runtime handoff contract guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/LAYER_CONTRACT_RUNTIME_HANDOFF_METAVERSE_BUILD.md"
+      - "docs/LAYER_CONTRACT_RUNTIME_BRIDGE.md"
+      - "docs/index.md"
+      - "scripts/check-runtime-handoff-contract.sh"
+      - "package.json"
+      - ".github/workflows/runtime-handoff-contract-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  runtime-handoff-contract:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: install deps
+        run: npm ci
+      - name: runtime handoff contract guard
+        run: npm run -s check:runtime-handoff-contract

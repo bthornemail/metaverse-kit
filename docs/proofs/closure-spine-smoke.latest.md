@@ -1,6 +1,6 @@
 # Closure Spine Smoke Proof
 
-Date: 2026-03-05
+Date: 2026-03-06
 Command:
 
 ```bash
@@ -11,7 +11,7 @@ cd /home/main/devops
 Key excerpt:
 
 ```txt
-WARN: no passing snapshot found for inputs_digest=sha256:a183fc9ea9a22acb8d067b17949828a9f06a833654484607c9948899a6ca3003
+WARN: no passing snapshot found for inputs_digest=sha256:3521103ec4cfeed6341ce1c11a008ad43923602bdb3ecf7ad1b0d39097523ef0
 [8a/9] metaverse-kit: No-authority gate
 [8a6b/9] metaverse-kit: wave17 conflict bundle golden
 [8a6c/9] metaverse-kit: wave17 conflict bundle must-reject
@@ -34,5 +34,7 @@ WARN: no passing snapshot found for inputs_digest=sha256:a183fc9ea9a22acb8d067b1
 [8a6t/9] metaverse-kit: wave30 emitter must-reject
 [8a6u/9] metaverse-kit: wave30 uart golden
 [8a6v/9] metaverse-kit: wave30 uart must-reject
+[8a6w/9] metaverse-kit: runtime handoff wave30 contract
+[8a6x/9] metaverse-kit: runtime handoff wave31 contract
 ok closure spine smoke
 ```

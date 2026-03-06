@@ -1,0 +1,32 @@
+name: runtime handoff wave31 guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/LAYER_CONTRACT_RUNTIME_HANDOFF_METAVERSE_BUILD.md"
+      - "tools/mv-runtime-handoff/**"
+      - "scripts/runtime-handoff-wave31-*"
+      - "scripts/check-runtime-handoff-wave31-contract.sh"
+      - "dev-docs/wave31/**"
+      - "package.json"
+      - ".github/workflows/runtime-handoff-wave31-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  runtime-handoff-wave31:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: install deps
+        run: npm ci
+      - name: runtime handoff contract
+        run: npm run -s check:runtime-handoff-contract
+      - name: runtime handoff wave31 contract
+        run: npm run -s check:runtime-handoff-wave31-contract
