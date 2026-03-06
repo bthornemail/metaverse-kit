@@ -11,7 +11,7 @@ cd /home/main/devops
 Key excerpt:
 
 ```txt
-WARN: no passing snapshot found for inputs_digest=sha256:3521103ec4cfeed6341ce1c11a008ad43923602bdb3ecf7ad1b0d39097523ef0
+WARN: no passing snapshot found for inputs_digest=sha256:b72c9c61d28f70b6c369c84390d0e2de73cdda20445fa9e36976cbbfd66292a9
 [8a/9] metaverse-kit: No-authority gate
 [8a6b/9] metaverse-kit: wave17 conflict bundle golden
 [8a6c/9] metaverse-kit: wave17 conflict bundle must-reject
@@ -36,5 +36,6 @@ WARN: no passing snapshot found for inputs_digest=sha256:3521103ec4cfeed6341ce1c
 [8a6v/9] metaverse-kit: wave30 uart must-reject
 [8a6w/9] metaverse-kit: runtime handoff wave30 contract
 [8a6x/9] metaverse-kit: runtime handoff wave31 contract
+[8a6y/9] metaverse-kit: runtime materialize wave31 contract
 ok closure spine smoke
 ```

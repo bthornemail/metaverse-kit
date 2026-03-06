@@ -1,0 +1,35 @@
+name: runtime materialize wave31 guard
+
+on:
+  pull_request:
+    paths:
+      - "tools/mv-runtime-materialize/**"
+      - "tools/mv-runtime-handoff/**"
+      - "scripts/runtime-materialize-wave31-*"
+      - "scripts/check-runtime-materialize-wave31-contract.sh"
+      - "scripts/runtime-handoff-wave31-*"
+      - "dev-docs/wave31/**"
+      - "docs/tools/mv-runtime-materialize.md"
+      - "docs/LAYER_CONTRACT_RUNTIME_HANDOFF_METAVERSE_BUILD.md"
+      - "package.json"
+      - ".github/workflows/runtime-materialize-wave31-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  runtime-materialize-wave31:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: install deps
+        run: npm ci
+      - name: runtime handoff wave31 contract
+        run: npm run -s check:runtime-handoff-wave31-contract
+      - name: runtime materialize wave31 contract
+        run: npm run -s check:runtime-materialize-wave31-contract

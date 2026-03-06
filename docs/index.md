@@ -116,6 +116,7 @@ A local-first, event-sourced metaverse toolkit with deterministic replay, multi-
   - `docs/tools/mv-evidence-bundle.md`
   - `docs/tools/mv-evidence-surface.md`
   - `docs/tools/mv-runtime-handoff.md`
+  - `docs/tools/mv-runtime-materialize.md`
   - `docs/tools/mv-avatar-role.md`
   - `docs/tools/mv-dialogue-grammar.md`
   - `docs/tools/mv-entity-model.md`
