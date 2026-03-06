@@ -7,6 +7,10 @@ const SURFACE_V = "wave30.evidence_surface.chords.v0";
 const FRAME_V = "wave30.evidence_surface_frame.v0";
 const EMITTER_FRAME_V = "wave30.evidence_surface_emitter_frame.esp32.v0";
 const UART_PACKET_V = "wave30.evidence_surface_uart_packet.esp32.v0";
+const W31_DECODE_RECEIPT_V = "wave31.hardware_decode_receipt.v0";
+const W31_FRAME_VERIFY_V = "wave31.frame_verify_result.v0";
+const W31_DECODE_PROFILE_ID = "wave31.decode_profile.esp32_uart.v0";
+const W31_FRAME_VERIFY_ID = "wave31.frame_verify.leds240.v0";
 const RING_SIZE = 240;
 const K_MAX_LIMIT = 48;
 const UART_PACKET_BYTES = 67;
@@ -26,6 +30,7 @@ function parseArgs(argv) {
     else if (a === "emit-esp32-uart") out.mode = "emit-esp32-uart";
     else if (a === "verify-esp32-uart") out.mode = "verify-esp32-uart";
     else if (a === "decode-esp32-uart") out.mode = "decode-esp32-uart";
+    else if (a === "wave31-verify") out.mode = "wave31-verify";
     else if (a === "--seed-digest" && argv[i + 1]) out.seedDigest = argv[++i];
     else if (a === "--in" && argv[i + 1]) out.input = argv[++i];
     else if (a === "--surface" && argv[i + 1]) out.surface = argv[++i];
@@ -37,6 +42,8 @@ function parseArgs(argv) {
     else if (a === "--out" && argv[i + 1]) out.out = argv[++i];
     else if (a === "--out-bin" && argv[i + 1]) out.outBin = argv[++i];
     else if (a === "--in-bin" && argv[i + 1]) out.inputBin = argv[++i];
+    else if (a === "--receipt-out" && argv[i + 1]) out.receiptOut = argv[++i];
+    else if (a === "--verify-out" && argv[i + 1]) out.verifyOut = argv[++i];
     else if (a === "--mode" && argv[i + 1]) out.modeRender = argv[++i];
     else if (a === "--help" || a === "-h") out.help = true;
     else die(`unknown arg: ${a}`);
@@ -68,6 +75,10 @@ async function readNdjson(p) {
 async function writeNdjson(p, rows) {
   const text = rows.map((r) => canonicalJson(r)).join("");
   await fs.writeFile(path.resolve(process.cwd(), p), text, "utf8");
+}
+
+function ndjsonDigest(rows) {
+  return shaPref(Buffer.from(rows.map((r) => canonicalJson(r)).join(""), "utf8"));
 }
 
 async function writeBin(p, buf) {
@@ -330,6 +341,16 @@ function idxArrayToMask(arr) {
   return buf;
 }
 
+function maskToIdxArray(maskBuf) {
+  const out = [];
+  for (let i = 0; i < RING_SIZE; i++) {
+    const bi = Math.floor(i / 8);
+    const bit = i % 8;
+    if ((maskBuf[bi] & (1 << bit)) !== 0) out.push(String(i));
+  }
+  return out;
+}
+
 function packEmitterFrame(frame, uartCrc) {
   if (uartCrc !== "none" && uartCrc !== UART_CRC_ID) die("uart crc mode unknown");
   const packetBytes = UART_PACKET_BYTES + (uartCrc === UART_CRC_ID ? 1 : 0);
@@ -372,6 +393,58 @@ function buildUartPacketRecord(surface, emitterFrame, uartCrc) {
   return { ...body, digest: shaPref(Buffer.from(canonicalJson(body), "utf8")) };
 }
 
+function decodedEmitterFrameFromPacket(surface, decoded) {
+  const on = maskToIdxArray(decoded.onMask);
+  const dim = maskToIdxArray(decoded.dimMask);
+  const pointer = decoded.pointer === 0xff ? [] : [String(decoded.pointer)];
+  const body = {
+    authority: "advisory",
+    dim,
+    frame_ms: String(decoded.frameMs),
+    mode: "leds240",
+    on,
+    pointer,
+    profile: "esp32.v0",
+    ring_size: String(RING_SIZE),
+    surface_digest: surface.digest,
+    t: String(decoded.t),
+    v: EMITTER_FRAME_V,
+  };
+  return { ...body, digest: shaPref(Buffer.from(canonicalJson(body), "utf8")) };
+}
+
+function buildWave31DecodeReceipt(surface, packetRows, uartCrc) {
+  const body = {
+    authority: "advisory",
+    decode_ok: "1",
+    decode_profile_id: W31_DECODE_PROFILE_ID,
+    error_count: "0",
+    first_error_code: "none",
+    packet_count: String(packetRows.length),
+    packet_stream_digest: ndjsonDigest(packetRows),
+    surface_digest: surface.digest,
+    uart_crc: uartCrc,
+    v: W31_DECODE_RECEIPT_V,
+  };
+  return { ...body, digest: shaPref(Buffer.from(canonicalJson(body), "utf8")) };
+}
+
+function buildWave31FrameVerifyResult(surface, decodedFrames) {
+  const body = {
+    authority: "advisory",
+    first_mismatch_t: "none",
+    frame_count: String(decodedFrames.length),
+    frame_stream_digest: ndjsonDigest(decodedFrames),
+    frame_type: EMITTER_FRAME_V,
+    frame_verify_id: W31_FRAME_VERIFY_ID,
+    mismatch_count: "0",
+    surface_digest: surface.digest,
+    v: W31_FRAME_VERIFY_V,
+    verify_ok: "1",
+  };
+  return { ...body, digest: shaPref(Buffer.from(canonicalJson(body), "utf8")) };
+}
+
 function packetHexToBuffer(x, bytes, ctx) {
   if (typeof x !== "string" || !/^[0-9a-f]+$/.test(x)) die(`${ctx} packet_hex invalid`);
   if (x.length !== bytes * 2) die(`${ctx} packet_hex length mismatch`);
@@ -391,12 +464,14 @@ function unpackPacket(buf, uartCrc, ctx) {
   const frameMs = (buf[4] << 8) | buf[5];
   const pointer = buf[6];
   if (pointer !== 0xff && (pointer < 0 || pointer >= RING_SIZE)) die(`${ctx} pointer out of range`);
+  const onMask = Buffer.from(buf.subarray(7, 37));
+  const dimMask = Buffer.from(buf.subarray(37, 67));
   if (uartCrc === UART_CRC_ID) {
     let crc = 0;
     for (let i = 0; i < UART_PACKET_BYTES; i++) crc ^= buf[i];
     if (buf[UART_PACKET_BYTES] !== crc) die(`${ctx} crc mismatch`);
   }
-  return { t, frameMs, pointer };
+  return { t, frameMs, pointer, onMask, dimMask };
 }
 
 function validateUartPacketRecord(x) {
@@ -525,6 +600,7 @@ async function main() {
     console.log("mv-evidence-surface emit-esp32-uart --surface <surface.json> --emitter <emitter.ndjson> --out <packets.ndjson> [--out-bin <packets.bin>] [--uart-crc none|crc8-xor-v0]");
     console.log("mv-evidence-surface verify-esp32-uart --surface <surface.json> --emitter <emitter.ndjson> --in <packets.ndjson> [--in-bin <packets.bin>] [--uart-crc none|crc8-xor-v0]");
     console.log("mv-evidence-surface decode-esp32-uart --surface <surface.json> --emitter <emitter.ndjson> --in-bin <packets.bin> --out <packets.ndjson> [--uart-crc none|crc8-xor-v0]");
+    console.log("mv-evidence-surface wave31-verify --surface <surface.json> --emitter <emitter.ndjson> --in-bin <packets.bin> --receipt-out <decode-receipt.json> --verify-out <frame-verify.json> [--uart-crc none|crc8-xor-v0]");
     return;
   }
 
@@ -719,7 +795,57 @@ async function main() {
     return;
   }
 
-  die("mode must be build|verify|render|render-leds240|verify-leds240|render-leds240-esp32|verify-leds240-esp32|emit-esp32-uart|verify-esp32-uart|decode-esp32-uart");
+  if (args.mode === "wave31-verify") {
+    if (!args.surface || !args.emitter || !args.inputBin || !args.receiptOut || !args.verifyOut) {
+      die("wave31-verify requires --surface --emitter --in-bin --receipt-out --verify-out");
+    }
+    if (args.uartCrc !== "none" && args.uartCrc !== UART_CRC_ID) die("uart crc mode unknown");
+    const surface = await readJson(args.surface);
+    validateSurface(surface);
+    const emitterRows = await readNdjson(args.emitter);
+    if (emitterRows.length === 0) die("emitter NDJSON empty");
+    const raw = await readBin(args.inputBin);
+    const packetBytes = UART_PACKET_BYTES + (args.uartCrc === UART_CRC_ID ? 1 : 0);
+    if (raw.length % packetBytes !== 0) die("uart packet framing mismatch");
+    const packetCount = raw.length / packetBytes;
+    if (packetCount !== emitterRows.length) die("uart packet count mismatch");
+
+    const decodedPacketRows = [];
+    const decodedFrames = [];
+    for (let i = 0; i < emitterRows.length; i++) {
+      const expected = emitterRows[i];
+      validateEmitterFrame(expected);
+      if (expected.surface_digest !== surface.digest) die(`emitter frame ${i} surface_digest mismatch`);
+      const t = toIntInRange(expected.t, 0, 10 ** 9, `emitter_frame[${i}].t`);
+      if (t !== i) die(`emitter frame ${i} t sequence mismatch`);
+
+      const chunk = raw.subarray(i * packetBytes, (i + 1) * packetBytes);
+      const dec = unpackPacket(chunk, args.uartCrc, `uart packet ${i}`);
+      if (dec.t !== t) die(`uart packet ${i} t mismatch`);
+      if (String(dec.frameMs) !== expected.frame_ms) die(`uart packet ${i} frame_ms mismatch`);
+      const expectPointer = expected.pointer.length === 1 ? Number(expected.pointer[0]) : 0xff;
+      if (dec.pointer !== expectPointer) die(`uart packet ${i} pointer mismatch`);
+
+      const packetRecord = buildUartPacketRecord(surface, expected, args.uartCrc);
+      if (packetRecord.packet_hex !== chunk.toString("hex")) die(`uart packet ${i} payload mismatch`);
+      decodedPacketRows.push(packetRecord);
+
+      const decodedFrame = decodedEmitterFrameFromPacket(surface, dec);
+      if (canonicalJson(decodedFrame) !== canonicalJson(expected)) {
+        die(`wave31 frame verify mismatch at t=${i}`);
+      }
+      decodedFrames.push(decodedFrame);
+    }
+
+    const decodeReceipt = buildWave31DecodeReceipt(surface, decodedPacketRows, args.uartCrc);
+    const frameVerify = buildWave31FrameVerifyResult(surface, decodedFrames);
+    await writeJson(args.receiptOut, decodeReceipt);
+    await writeJson(args.verifyOut, frameVerify);
+    console.log(`ok mv-evidence-surface wave31-verify packets=${decodedPacketRows.length} frames=${decodedFrames.length}`);
+    return;
+  }
+
+  die("mode must be build|verify|render|render-leds240|verify-leds240|render-leds240-esp32|verify-leds240-esp32|emit-esp32-uart|verify-esp32-uart|decode-esp32-uart|wave31-verify");
 }
 
 main().catch((e) => die(e.message || String(e)));

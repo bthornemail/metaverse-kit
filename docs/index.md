@@ -70,6 +70,7 @@ A local-first, event-sourced metaverse toolkit with deterministic replay, multi-
 - Latest Wave28 proof receipt: `docs/proofs/wave28.latest.md`
 - Latest Wave29 proof receipt: `docs/proofs/wave29.latest.md`
 - Latest Wave30 proof receipt: `docs/proofs/wave30.latest.md`
+- Latest Wave31 proof receipt: `docs/proofs/wave31.latest.md`
 - Implementation Plan: `dev-docs/PLANS/Implementation Plan.md`
 - SPABBS RFC: `dev-docs/1007 - RFC - Staged Polymorphic Automaton with Blackboard Semantics (SPABBS).md`
 - BASIS32/EXT32: `dev-docs/1008 - BASIS32 -- EXT32 - Layered Blackboard Identity for Projective, Federated Worlds.md`

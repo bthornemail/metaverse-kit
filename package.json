@@ -75,6 +75,8 @@
     "check:wave30-doc-freeze": "bash scripts/check-wave30-doc-freeze.sh",
     "check:wave30-proof-receipt": "bash scripts/check-wave30-proof-receipt.sh",
     "check:wave31-doc-freeze": "bash scripts/check-wave31-doc-freeze.sh",
+    "check:wave31-esp32-decode-roundtrip": "bash scripts/check-wave31-esp32-decode-roundtrip.sh",
+    "check:wave31-frame-verify-contract": "bash scripts/check-wave31-frame-verify-contract.sh",
     "check:client:wave28-fixtures": "bash scripts/check-client-wave28-fixtures.sh",
     "check:client:wave28-panel": "bash scripts/check-client-wave28-panel.sh",
     "check:client:wave28-types": "tsc -p apps/client/tsconfig.wave28.json --noEmit",

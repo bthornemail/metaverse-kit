@@ -112,3 +112,20 @@ npm run -s mv-evidence-surface -- decode-esp32-uart \
 ```
 
 Roundtrip parity gate requires decoded NDJSON to match canonical UART NDJSON line-for-line.
+
+## Wave31 Host Verify (Decode + Receipt + Frame Verify)
+
+```bash
+npm run -s mv-evidence-surface -- wave31-verify \
+  --surface dev-docs/wave30/evidence-surface.chords.v0.json \
+  --emitter dev-docs/wave30/evidence-surface.frames.leds240.esp32.v0.ndjson \
+  --uart-crc none \
+  --in-bin dev-docs/wave30/evidence-surface.uart.esp32.v0.bin \
+  --receipt-out dev-docs/wave31/golden/hardware-decode-receipt.v0.json \
+  --verify-out dev-docs/wave31/golden/frame-verify-result.v0.json
+```
+
+Outputs:
+
+- `wave31.hardware_decode_receipt.v0`
+- `wave31.frame_verify_result.v0`

@@ -1,0 +1,36 @@
+name: wave31 guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/WAVE31_*"
+      - "docs/tools/mv-evidence-surface.md"
+      - "docs/proofs/wave31.latest.md"
+      - "dev-docs/wave31/**"
+      - "scripts/check-wave31-*.sh"
+      - "scripts/wave31-*.sh"
+      - "tools/mv-evidence-surface/**"
+      - "package.json"
+      - ".github/workflows/wave31-guard.yml"
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  wave31:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: install deps
+        run: npm ci
+      - name: wave31 doc freeze
+        run: npm run -s check:wave31-doc-freeze
+      - name: wave31 decode roundtrip
+        run: npm run -s check:wave31-esp32-decode-roundtrip
+      - name: wave31 frame verify contract
+        run: npm run -s check:wave31-frame-verify-contract
