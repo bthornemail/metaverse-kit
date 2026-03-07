@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "docs/LAYER_CONTRACT_AUTHORITY_METAVERSE_KIT.md"
+      - "docs/GOVERNED_PROJECTION_GEOMETRY.md"
       - "docs/apps/LAYER_CONTRACT_PROJECTION_APPS.md"
       - "docs/templates/LAYER_CONTRACT.md"
       - "docs/index.md"

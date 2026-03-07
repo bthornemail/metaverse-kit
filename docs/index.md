@@ -152,6 +152,7 @@ A local-first, event-sourced metaverse toolkit with deterministic replay, multi-
   - `docs/LAYER_CONTRACT_AUTHORITY_METAVERSE_KIT.md`
   - `docs/LAYER_CONTRACT_RUNTIME_BRIDGE.md`
   - `docs/LAYER_CONTRACT_RUNTIME_HANDOFF_METAVERSE_BUILD.md`
+  - `docs/GOVERNED_PROJECTION_GEOMETRY.md`
   - `docs/apps/LAYER_CONTRACT_PROJECTION_APPS.md`
 
 ## Full Spine (Explicit)
