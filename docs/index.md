@@ -53,6 +53,7 @@ A local-first, event-sourced metaverse toolkit with deterministic replay, multi-
 - Wave30 Evidence Surface Emitter Frames ABI: `docs/WAVE30_EVIDENCE_SURFACE_EMITTER_FRAMES_ABI.md`
 - Wave30 Evidence Surface UART Packets ABI: `docs/WAVE30_EVIDENCE_SURFACE_UART_PACKETS_ABI.md`
 - Wave30 Evidence Surface Functions: `docs/WAVE30_EVIDENCE_SURFACE_FUNCTIONS.md`
+- Wave30 to world.ir Mapping: `docs/WAVE30_TO_WORLD_IR_MAPPING.md`
 - Wave31 Hardware Decode Receipt ABI: `docs/WAVE31_HARDWARE_DECODE_RECEIPT_ABI.md`
 - Wave31 Frame Verify Result ABI: `docs/WAVE31_FRAME_VERIFY_RESULT_ABI.md`
 - Wave31 Device Parity Harness: `docs/WAVE31_DEVICE_PARITY_HARNESS.md`

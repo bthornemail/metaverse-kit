@@ -1,0 +1,35 @@
+name: ops attestation contract guard
+
+on:
+  pull_request:
+    paths:
+      - "docs/KEY_ROTATION.md"
+      - "docs/INCIDENT_RESPONSE.md"
+      - "scripts/check-ops-attestation-contract.sh"
+      - "package.json"
+      - ".github/workflows/ops-attestation-contract-guard.yml"
+  push:
+    branches: [ main ]
+    paths:
+      - "docs/KEY_ROTATION.md"
+      - "docs/INCIDENT_RESPONSE.md"
+      - "scripts/check-ops-attestation-contract.sh"
+      - "package.json"
+      - ".github/workflows/ops-attestation-contract-guard.yml"
+  workflow_dispatch:
+
+jobs:
+  ops-attestation-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup runtime attestations
+        run: |
+          mkdir -p .tmp/runtime-attestations
+          echo '{"v":"metaverse-build.transport_equivalence_attestation.v0","authority":"advisory","deterministic":"1","checks":[],"fail_classes":[],"artifacts":{},"digest":"sha256:0000000000000000000000000000000000000000000000000000000000000000"}' > .tmp/runtime-attestations/transport-equivalence.attestation.v0.json
+          echo '{"v":"metaverse-build.ops_rollback_restore_drill_attestation.v0","authority":"advisory","deterministic":"1","drills":{},"fail_classes":[],"linked_attestations":{},"artifacts":{},"digest":"sha256:0000000000000000000000000000000000000000000000000000000000000000"}' > .tmp/runtime-attestations/ops-rollback-restore-drill.attestation.v0.json
+      - name: ops attestation contract guard
+        run: npm run -s check:ops-attestation-contract
+        env:
+          TRANSPORT_ATTEST_PATH: .tmp/runtime-attestations/transport-equivalence.attestation.v0.json
+          OPS_ATTEST_PATH: .tmp/runtime-attestations/ops-rollback-restore-drill.attestation.v0.json

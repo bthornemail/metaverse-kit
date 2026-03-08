@@ -10,6 +10,14 @@ Applies to incidents affecting:
 - deterministic replay consistency
 - portal authority boundaries
 - proposal artifact correctness
+- host runtime attestation drift in pre-hardware closure lanes
+
+## Required runtime attestation artifacts
+
+Incident triage must include these concrete artifacts:
+
+- `/home/main/devops/metaverse-build/evidence/pre-hardware/transport-equivalence.attestation.v0.json`
+- `/home/main/devops/metaverse-build/evidence/pre-hardware/ops-rollback-restore-drill.attestation.v0.json`
 
 ## Trigger conditions
 
@@ -42,6 +50,8 @@ Run:
 npm run -s check:portal-contract
 bash scripts/demo-portal-eval.sh
 npm run -s release:verify
+bash /home/main/devops/metaverse-build/scripts/check-federated-transport-equivalence.sh
+bash /home/main/devops/metaverse-build/scripts/check-ops-rollback-restore-drill.sh
 ```
 
 Classify whether failure is:
@@ -72,6 +82,7 @@ Classify whether failure is:
 - why existing gates missed it
 - gate/doc changes introduced
 - follow-up owner and due date
+- attestation digests captured from the required runtime attestation artifacts
 
 ## Decision matrix
 

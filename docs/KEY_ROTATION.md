@@ -14,6 +14,15 @@ Signing keys are part of the project authority boundary. Key rotation must prese
 
 Old releases remain verifiable with historical keys.
 
+## Runtime attestation binding (pre-hardware closure)
+
+Rotation events must be linked to current host-runtime closure evidence before key activation:
+
+- `/home/main/devops/metaverse-build/evidence/pre-hardware/transport-equivalence.attestation.v0.json`
+- `/home/main/devops/metaverse-build/evidence/pre-hardware/ops-rollback-restore-drill.attestation.v0.json`
+
+Both artifacts are `authority: advisory` runtime attestations and are required operator evidence for pre-hardware closure lanes.
+
 ## Artifacts
 
 ### `keys/active.json`
@@ -54,6 +63,7 @@ Allowed `status` values:
    - set new `key_id`, `public_key`, `valid_from`
    - set `replaces` to previous `key_id`
 5. Commit and tag rotation event.
+   - include current runtime attestation digests from the two pre-hardware evidence artifacts above in release notes/advisory notes
 6. Publish rotation notice with verification instructions.
 
 ## Compromise response

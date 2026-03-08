@@ -4,9 +4,12 @@ on:
   pull_request:
     paths:
       - "docs/LAYER_CONTRACT_RUNTIME_HANDOFF_METAVERSE_BUILD.md"
+      - "docs/WAVE30_TO_WORLD_IR_MAPPING.md"
       - "tools/mv-runtime-handoff/**"
       - "scripts/runtime-handoff-wave30-*"
+      - "scripts/runtime-handoff-wave30-to-world-ir-*"
       - "scripts/check-runtime-handoff-wave30-contract.sh"
+      - "scripts/check-runtime-handoff-wave30-to-world-ir-contract.sh"
       - "dev-docs/wave30/**"
       - "package.json"
       - ".github/workflows/runtime-handoff-wave30-guard.yml"
@@ -30,3 +33,5 @@ jobs:
         run: npm run -s check:runtime-handoff-contract
       - name: runtime handoff wave30 contract
         run: npm run -s check:runtime-handoff-wave30-contract
+      - name: runtime handoff wave30 to world.ir contract
+        run: npm run -s check:runtime-handoff-wave30-to-world-ir-contract
