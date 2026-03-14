@@ -134,6 +134,16 @@ npm run mv-client
 
 See `QUICKSTART.md` for full setup and usage.
 
+## Agent Bootstrap
+
+From workspace root (`/home/main/devops`):
+
+```bash
+make agent-prompt-list   # show available prompt variants
+make agent-prompt-base   # full system prompt
+make agent-prompt-day1   # short day-1 contributor prompt
+```
+
 ## Deterministic World Demo (v0.1)
 
 This repository ships a protocol/runtime/demo release surface:
@@ -173,6 +183,29 @@ Core docs:
 - `docs/SIGNED_RELEASES.md`
 - `SECURITY.md`
 - `RELEASE_NOTES.md`
+
+## Atomic Kernel Downstream Proof (Milestone E)
+
+This repository includes a thin downstream adapter that uses only the stable public
+`atomic_kernel.*` API boundary for replay + identity derivation.
+
+Visible proof:
+
+```bash
+npm run -s atomic-kernel:show
+```
+
+This prints a read-only verification summary with deterministic replay prefix, SID, and OID.
+
+Run:
+
+```bash
+npm run -s check:atomic-kernel-import-boundary
+npm run -s atomic-kernel:test
+```
+
+Adapter:
+- `tools/mv-atomic-kernel/index.py`
 
 ## Development
 
