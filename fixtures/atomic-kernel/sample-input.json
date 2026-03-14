@@ -1,0 +1,13 @@
+{
+  "width": 32,
+  "seed": "0x00000001",
+  "steps": 8,
+  "sid_type": "living_xml",
+  "canonical": "0011100",
+  "clock": {
+    "frame": 0,
+    "tick": 1,
+    "control": 0
+  },
+  "prev_oid": null
+}
