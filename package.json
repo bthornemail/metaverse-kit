@@ -56,6 +56,7 @@
     "mv-proposal-bundle": "node tools/mv-proposal-bundle/index.js",
     "mv-verify-demo": "node tools/mv-verify-demo/index.js",
     "atomic-kernel:demo": "python3 tools/mv-atomic-kernel/index.py --input fixtures/atomic-kernel/sample-input.json --output /tmp/metaverse-kit-atomic-kernel-demo.json",
+    "atomic-kernel:show": "python3 tools/mv-atomic-kernel/index.py --show --input fixtures/atomic-kernel/sample-input.json",
     "atomic-kernel:test": "bash scripts/atomic-kernel-integration-smoke.sh",
     "waveform:render": "node scripts/render-waveform.js",
     "waveform:render:test": "node scripts/test-waveform-render.js",

@@ -25,6 +25,20 @@ def _hex_u32(n: int) -> str:
     return f"0x{n:08x}"
 
 
+def _print_human(report: dict, source: str) -> None:
+    replay = report["replay"]
+    preview = ", ".join(replay[:8])
+    print("Atomic Kernel Verification")
+    print("status: PASS")
+    print(f"width: {report['input']['width']}")
+    print(f"seed: {report['input']['seed']}")
+    print(f"replay[0..{min(len(replay), 8) - 1}]: {preview}")
+    print(f"sid: {report['sid']}")
+    print(f"oid: {report['oid']}")
+    print(f"authority: {report['authority']} downstream view")
+    print(f"source: {source}")
+
+
 def run(payload: dict, root: Path) -> dict:
     _bootstrap_import_path(root)
 
@@ -57,15 +71,32 @@ def run(payload: dict, root: Path) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input", required=True)
-    parser.add_argument("--output", required=True)
+    parser.add_argument(
+        "--input",
+        default="fixtures/atomic-kernel/sample-input.json",
+        help="input fixture (default: fixtures/atomic-kernel/sample-input.json)",
+    )
+    parser.add_argument("--output", help="optional machine-readable output path")
+    parser.add_argument(
+        "--show",
+        action="store_true",
+        help="print human-readable verification summary to stdout",
+    )
     args = parser.parse_args()
 
     root = Path(__file__).resolve().parents[2]
     inp = json.loads(Path(args.input).read_text(encoding="utf-8"))
     out = run(inp, root)
-    Path(args.output).write_text(json.dumps(out, sort_keys=True, separators=(",", ":")) + "\n", encoding="utf-8")
-    print(f"ok mv-atomic-kernel out={args.output}")
+    if args.output:
+        Path(args.output).write_text(
+            json.dumps(out, sort_keys=True, separators=(",", ":")) + "\n", encoding="utf-8"
+        )
+        print(f"ok mv-atomic-kernel out={args.output}")
+    if args.show:
+        _print_human(out, args.input)
+    if not args.output and not args.show:
+        # Default behavior: emit machine-readable result to stdout.
+        print(json.dumps(out, sort_keys=True, separators=(",", ":")))
     return 0
 
 
