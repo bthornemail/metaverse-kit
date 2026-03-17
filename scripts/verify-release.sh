@@ -23,8 +23,8 @@ if [[ -z "$DIST" ]]; then
 fi
 
 if [[ ! -d "$DIST" ]]; then
-  echo "ERROR: dist missing: $DIST" >&2
-  exit 2
+  echo "INFO: dist missing, generating via release-pack: $DIST" >&2
+  RELEASE_DIST_DIR="$DIST" bash "$ROOT_DIR/scripts/release-pack.sh" >/dev/null
 fi
 
 ( cd "$DIST" && sha256sum --check checksums.txt )
